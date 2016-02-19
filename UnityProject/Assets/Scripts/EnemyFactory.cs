@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 public class EnemyFactory : MonoBehaviour 
 {
-    public enum Column { One, Two, Three, NumColumns }
+    public enum Column { One, Two, Three, NumColumns };
 
 	private static EnemyFactory mInstance; 
 

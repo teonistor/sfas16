@@ -3,15 +3,17 @@ using System.Collections;
 
 public class GameInput : MonoBehaviour 
 {
-	public enum Direction { Up, Down, Left, Right };
+	public enum Direction { Up, Down, Left, Right, Through };
 	
 	public delegate void OnTapCallback( Vector3 position );
-	public delegate void OnSwipeCallback( Direction direction );
-	
-	public static event OnTapCallback OnTap;
-	public static event OnSwipeCallback OnSwipe;
+    public delegate void OnSwipeCallback(Direction direction);
+    public delegate void OnKeyPressCallback(Direction direction);
 
-	private enum MouseButtons
+    public static event OnTapCallback OnTap;
+    public static event OnSwipeCallback OnSwipe;
+    public static event OnKeyPressCallback OnKeyPress;
+
+    private enum MouseButtons
 	{
 		Left,
 		Right,
@@ -133,7 +135,13 @@ public class GameInput : MonoBehaviour
 				OnSwipe( direction );
 			}
 		}
-	}
+
+        //For keyboard input
+        if (Input.GetButton("Left")) OnKeyPress(Direction.Left);
+        if (Input.GetButton("Right")) OnKeyPress(Direction.Right);
+        if (Input.GetButton("Up")) OnKeyPress(Direction.Up);
+        if (Input.GetButton("Jump")) OnKeyPress(Direction.Through);
+    }
 
 	private bool MouseButtonJustPressed( MouseButtons button )
 	{

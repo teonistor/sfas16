@@ -18,7 +18,7 @@ public class CreateMesh : MonoBehaviour
 	{
 		Vector3 [] verts = new Vector3[7]; 
 		float wide = size * 0.5f;
-		float narrow = size * 0.15f;
+		float narrow = size * 0.2f;
 		
 		verts[0] = new Vector3( 0.0f, wide, 0.0f );
 		verts[1] = new Vector3( -wide, 0.0f, 0.0f );

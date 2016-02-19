@@ -11,7 +11,7 @@ public class GameLogic : MonoBehaviour
     [SerializeField] private float WaitTime = 1.0f;
 	[SerializeField] private int MaxMissedEnemies = 3; 
 
-	private enum State { TapToStart, Game, GameOver };
+	private enum State { TapToStart, Level, Boss, GameOver };
 
 	private List<GameObject> mActiveEnemies;
 	private DifficultyCurve mCurrentDifficulty;
@@ -36,8 +36,9 @@ public class GameLogic : MonoBehaviour
 		ScreenBounds = ScreenHeight * GameplayCamera.aspect * 0.5f;
 
 		GameInput.OnTap += HandleOnTap;
-		GameInput.OnSwipe += HandleOnSwipe;
-		mActiveEnemies = new List<GameObject>();
+        GameInput.OnSwipe += HandleOnSwipe;
+        GameInput.OnKeyPress += HandleKeyPress;
+        mActiveEnemies = new List<GameObject>();
 		mCurrentDifficulty = GetComponentInChildren<DifficultyCurve>();
 		mPlayerCharacter = GetComponentInChildren<PlayerCharacter>();
 		mGameStatus = State.TapToStart;
@@ -50,11 +51,11 @@ public class GameLogic : MonoBehaviour
 	{
 		GameDeltaTime = Paused ? 0.0f : Time.deltaTime;
 
-		if( mGameStatus == State.Game )
+		if( mGameStatus == State.Level )
 		{
 			mDistanceTravelled += GameSpeed * GameDeltaTime;
 			GameText.text = string.Format( "Distance: {0:0.0} m", mDistanceTravelled );
-
+            /*
 			int enemies = mCurrentDifficulty.SpawnCount();
 			if( enemies == 1 ) 
 			{
@@ -84,12 +85,21 @@ public class GameLogic : MonoBehaviour
                 mActiveEnemies.Add(EnemyFactory.Dispatch(EnemyFactory.Column.One));
                 mActiveEnemies.Add(EnemyFactory.Dispatch(EnemyFactory.Column.Two));
                 mActiveEnemies.Add(EnemyFactory.Dispatch(EnemyFactory.Column.Three));
-			}
+			}*/
 
-			// Update the position of each active enemy, keep a track of enemies which have gone off screen 
-			List<GameObject> oldEnemys = new List<GameObject>(); 
+            int enemies = mCurrentDifficulty.SpawnPattern();
+            for (int ColumnCount = 0; ColumnCount < 3; ColumnCount++)
+            {
+                if ((enemies & (1 << ColumnCount) ) != 0)
+                {
+                    mActiveEnemies.Add(EnemyFactory.Dispatch((EnemyFactory.Column)ColumnCount));
+                }
+            }
+
+            // Update the position of each active enemy, keep a track of enemies which have gone off screen 
+            List<GameObject> oldEnemys = new List<GameObject>(); 
 			for( int count = 0; count < mActiveEnemies.Count; count++ )
-			{
+            { 
 				Vector3 position = mActiveEnemies[count].transform.position;
 				position.y -= GameDeltaTime * GameSpeed;
 				mActiveEnemies[count].transform.position = position;
@@ -108,7 +118,7 @@ public class GameLogic : MonoBehaviour
 						mCurrentDifficulty.Stop();
                         mGameOverTime = Time.timeSinceLevelLoad;
 						mGameStatus = State.GameOver;
-						GameText.text = string.Format( "You Dead!\nTotal Distance: {0:0.0} m", mDistanceTravelled );
+						GameText.text = string.Format( "You died!\nTotal distance: {0:0.0} m", mDistanceTravelled );
 					}
 					else
 					{
@@ -136,7 +146,7 @@ public class GameLogic : MonoBehaviour
 				mCurrentDifficulty.Stop();
                 mGameOverTime = Time.timeSinceLevelLoad;
                 mGameStatus = State.GameOver;
-				GameText.text = string.Format( "You Been Invaded!\nTotal Distance: {0:0.0} m", mDistanceTravelled );
+				GameText.text = string.Format( "You have been invaded!\nTotal distance: {0:0.0} m", mDistanceTravelled );
 			}
 
 			for( int count = 0; count < oldEnemys.Count; count++ )
@@ -144,7 +154,14 @@ public class GameLogic : MonoBehaviour
 				mActiveEnemies.Remove( oldEnemys[count] );
 			}
 		}
-	}
+
+        if (mGameStatus == State.Boss)
+        {
+            GameText.text = "Boss fight!";
+
+        }
+
+    }
 
 	private void Reset()
 	{
@@ -162,10 +179,11 @@ public class GameLogic : MonoBehaviour
 		{
 		case State.TapToStart:
 			Paused = false;
-			mGameStatus = State.Game;
+			mGameStatus = State.Level;
 			break;
-		case State.Game:
-			mPlayerCharacter.Fire();
+        case State.Level:
+        case State.Boss:
+                mPlayerCharacter.Fire();
 			break;
 		case State.GameOver:
             if (Time.timeSinceLevelLoad - mGameOverTime > WaitTime)
@@ -181,7 +199,7 @@ public class GameLogic : MonoBehaviour
 	
 	private void HandleOnSwipe( GameInput.Direction direction )
 	{
-		if( mGameStatus == State.Game )
+		if( mGameStatus == State.Level || mGameStatus == State.Boss )
 		{
 			switch( direction )
 			{
@@ -194,4 +212,43 @@ public class GameLogic : MonoBehaviour
 			}
 		}
 	}
+
+    private void HandleKeyPress (GameInput.Direction direction)
+    {
+        switch (mGameStatus)
+        {
+            case State.TapToStart:
+                if (direction == GameInput.Direction.Up || direction == GameInput.Direction.Through)
+                {
+                    Paused = false;
+                    mGameStatus = State.Level;
+                }
+                break;
+            case State.Level:
+            case State.Boss:
+                switch (direction)
+                {
+                    case GameInput.Direction.Left:
+                        mPlayerCharacter.MoveLeft();
+                        break;
+                    case GameInput.Direction.Right:
+                        mPlayerCharacter.MoveRight();
+                        break;
+                    case GameInput.Direction.Up:
+                    case GameInput.Direction.Through:
+                        mPlayerCharacter.Fire();
+                        break;
+                }
+                break;
+            case State.GameOver:
+                if (Time.timeSinceLevelLoad - mGameOverTime > WaitTime && 
+                    (direction == GameInput.Direction.Up || direction == GameInput.Direction.Through))
+                {
+                    Reset();
+                    GameText.text = "Tap to Start";
+                    mGameStatus = State.TapToStart;
+                }
+                break;
+        }
+    }
 }

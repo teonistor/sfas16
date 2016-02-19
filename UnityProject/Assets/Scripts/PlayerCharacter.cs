@@ -11,6 +11,9 @@ public class PlayerCharacter : MonoBehaviour
 	private float mColumnSize;
 	private float mStartY;
 
+    //How much movement of the column width can be left when we consider a new movement in the same direction
+    private const float ColumnSafety = 0.3f;
+
 	public Weapon Weapon { get { return mGun; } }
 	public int Column { get; private set; }
 
@@ -19,7 +22,7 @@ public class PlayerCharacter : MonoBehaviour
 		mColumnSize = ( GameLogic.ScreenHeight * GameplayCamera.aspect * 0.8f ) / 3;
 
 		Vector3 position = transform.position;
-		position.y = GameLogic.ScreenHeight * -0.35f;
+		position.y = GameLogic.ScreenHeight * -0.4f;
 		mStartY = position.y; 
 		transform.position = position;
 
@@ -60,7 +63,7 @@ public class PlayerCharacter : MonoBehaviour
 
 	public void MoveLeft()
 	{
-		if( Column >= 1 && GameLogic.GameDeltaTime > 0.0f )
+		if( Column >= 1 && GameLogic.GameDeltaTime > 0.0f && transform.position.x-mTargetPosition < mColumnSize * ColumnSafety)
 		{
 			mTargetPosition -= mColumnSize;
 			Column--;
@@ -69,7 +72,7 @@ public class PlayerCharacter : MonoBehaviour
 
 	public void MoveRight()
 	{
-		if( Column <= 1 && GameLogic.GameDeltaTime > 0.0f )
+		if( Column <= 1 && GameLogic.GameDeltaTime > 0.0f && mTargetPosition - transform.position.x < mColumnSize * ColumnSafety)
 		{
 			mTargetPosition += mColumnSize;
 			Column++;

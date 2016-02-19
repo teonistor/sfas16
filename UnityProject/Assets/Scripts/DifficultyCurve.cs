@@ -1,32 +1,43 @@
 ﻿using UnityEngine;
-using System;
+//using System;
 using System.Collections;
 
 public class DifficultyCurve : MonoBehaviour 
 {
-	[SerializeField] private float GameStartSpeed = 10f;
-	[SerializeField] private float GameSpeedRamp = 0.1f;
-	[SerializeField] private float PlayerStartSpeed = 20f;
-	[SerializeField] private float PlayerSpeedRamp = 0.1f;
-	[SerializeField] private float BulletStartSpeed = 20f;
-	[SerializeField] private float BulletSpeedRamp = 0.1f;
-	[SerializeField] private float TimeBetweenRows = 5.0f;
-	[SerializeField] private float TimeBetweenWaves = 40.0f;
+	[SerializeField] private float GameStartSpeed;
+	//[SerializeField] private float GameSpeedRamp = 0.1f;
+	[SerializeField] private float PlayerStartSpeed;
+	//[SerializeField] private float PlayerSpeedRamp = 0.1f;
+	[SerializeField] private float BulletStartSpeed;
+    //[SerializeField] private float BulletSpeedRamp = 0.1f;
+    //[SerializeField] private float TimeBetweenRows = 5.0f;
+    //[SerializeField] private float TimeBetweenWaves = 40.0f;
+    
+    [SerializeField] private float SpeedGain;
+    [SerializeField] private float EnemyDensity;
+    [SerializeField] private float EnemySafeGap;
+    [SerializeField] private float EnemyCheckGap;
+    [SerializeField] private float LevelStartDuration;
 
-	private EnemyWave[] mWaves;
-	private float mTimeToNextRow;
-	private float mTimeToNextWave;
-	private int mCurrentRow;
-	private int mCurrentWave;
+    //private EnemyWave[] mWaves;
+    //private float mTimeToNextRow;
+    //private float mTimeToNextWave;
+    //private int mCurrentRow;
+    //private int mCurrentWave;
+
+    private float [] mTimeToDanger;
 
 	public static float GameSpeed { get; private set; }
 	public static float PlayerSpeed { get; private set; }
 	public static float BulletSpeed { get; private set; }
+    public static float LevelDuration { get; private set; }
 
-	void Awake()
+    void Awake()
 	{
 		Reset();
 
+        mTimeToDanger = new float [] { EnemyCheckGap, EnemyCheckGap, EnemyCheckGap };
+        /*
 		EnemyWave [] waves = { 
 			new EnemyWave( 1, 1 ), 
 			new EnemyWave( 1, 2 ), 
@@ -42,16 +53,19 @@ public class DifficultyCurve : MonoBehaviour
 			new EnemyWave( 3, 8 ) 
 		};
 
-		mWaves = waves;
-	}
+		mWaves = waves;*/
+    }
 
 	void Start()
 	{
 		GameSpeed = GameStartSpeed;
 		PlayerSpeed = PlayerStartSpeed;
 		BulletSpeed = BulletStartSpeed;
-	}
+        LevelDuration = LevelStartDuration;
 
+    }
+
+    /*
 	public int SpawnCount()
 	{
 		int enemiesToSpawn = 0;
@@ -84,7 +98,30 @@ public class DifficultyCurve : MonoBehaviour
 		}
 
 		return enemiesToSpawn;
-	}
+	}*/
+
+    public int SpawnPattern()
+    {
+        int pattern = 0;
+
+        for (int ColumnCount = 0; ColumnCount < 3; ColumnCount++)
+        {
+            mTimeToDanger[ColumnCount] -= GameLogic.GameDeltaTime;
+            if (mTimeToDanger[ColumnCount] < 0f)
+            {
+                if (Random.Range(0f, 100f) < EnemyDensity)
+                {
+                    pattern |= 1 << ColumnCount;
+                    mTimeToDanger[ColumnCount] = EnemySafeGap;
+                }
+                else
+                {
+                    mTimeToDanger[ColumnCount] = EnemyCheckGap;
+                }
+            }
+        }
+        return pattern;
+    }
 
 	public void Stop()
 	{
@@ -98,9 +135,9 @@ public class DifficultyCurve : MonoBehaviour
 		GameSpeed = GameStartSpeed;
 		PlayerSpeed = PlayerStartSpeed;
 		BulletSpeed = BulletStartSpeed;
-		mTimeToNextRow = TimeBetweenRows;
-		mTimeToNextWave = TimeBetweenWaves;
-		mCurrentRow = 0;
-		mCurrentWave = 0;
+		//mTimeToNextRow = TimeBetweenRows;
+		//mTimeToNextWave = TimeBetweenWaves;
+		//mCurrentRow = 0;
+		//mCurrentWave = 0;
 	}
 }
