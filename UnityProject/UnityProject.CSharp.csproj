@@ -68,6 +68,7 @@
   <ItemGroup>
     <Compile Include="Assets\Scripts\BackgroundScenery.cs" />
     <Compile Include="Assets\Scripts\Boss.cs" />
+    <Compile Include="Assets\Scripts\BulletColor.cs" />
     <Compile Include="Assets\Scripts\CameraUtils.cs" />
     <Compile Include="Assets\Scripts\CreateMesh.cs" />
     <Compile Include="Assets\Scripts\DifficultyCurve.cs" />

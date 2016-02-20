@@ -86,6 +86,7 @@ public class GameLogic : MonoBehaviour
                     mGameStatus = State.Boss;
                     bossAlive = true;
                     boss = new Boss(GameplayCamera, EnemyMaterial);
+                    mPlayerCharacter.Weapon.SetBulletTheme(Weapon.Theme.Bright);
                 }
             }
 
@@ -197,7 +198,7 @@ public class GameLogic : MonoBehaviour
                     mGameStatus = State.Level;
                     mMissedEnemies = 0;
                     mLevelTimeLeft = DifficultyCurve.LevelDuration;
-                    print(mLevelTimeLeft);
+                    mPlayerCharacter.Weapon.SetBulletTheme(Weapon.Theme.Dark);
                 }
             }
         }
@@ -211,7 +212,8 @@ public class GameLogic : MonoBehaviour
         if (boss != null)
             boss.Destroy();
         mPlayerCharacter.Reset();
-		mCurrentDifficulty.Reset();
+        mPlayerCharacter.Weapon.SetBulletTheme(Weapon.Theme.Dark);
+        mCurrentDifficulty.Reset();
 		EnemyFactory.Reset();
 		mActiveEnemies.Clear();
 		mMissedEnemies = 0;

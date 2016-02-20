@@ -15,11 +15,20 @@ public class Weapon : MonoBehaviour
 	private List<GameObject> mInactive;
 	private float mCharging;
 
+    private Color [] BulletColors;
+    public enum Theme {Dark, Bright};
+
 	public List<GameObject> ActiveBullets { get { return mActive; } }
 
 	void Awake()
 	{
-		// Create the bullets, initialise the active and available lists, put all bullets in the available list
+        //Create the 2 theme colors
+        BulletColors = new Color[] {
+            new Color (0.099f, 0.094f, 0.132f),
+            new Color (0.9f, 0.9f, 0.92f)
+        };
+        
+        // Create the bullets, initialise the active and available lists, put all bullets in the available list
 		mActive = new List<GameObject>();
 		mInactive = new List<GameObject>();
 		mPool = new GameObject[BulletPoolSize];
@@ -28,7 +37,7 @@ public class Weapon : MonoBehaviour
 			GameObject bullet = new GameObject( "Bullet_PoolID" + ( count + 1 ) );
 			CreateMesh m = bullet.AddComponent<CreateMesh>();
 			m.Material = BulletMaterial;
-			bullet.transform.localScale = new Vector3( BulletScale, BulletScale, BulletScale );
+            bullet.transform.localScale = new Vector3( BulletScale, BulletScale, BulletScale );
 			bullet.transform.parent = transform;
             mPool[count] = bullet;
 			mInactive.Add( bullet );
@@ -82,8 +91,12 @@ public class Weapon : MonoBehaviour
 			mCharging = RechargeTime;
 			result = true;
 		}
-
-		// Returns true if a free bullet was found and fired
+        
 		return result;
 	}
+
+    public void SetBulletTheme (Theme theme)
+    {
+        BulletMaterial.color = BulletColors[(int)theme];
+    }
 }
