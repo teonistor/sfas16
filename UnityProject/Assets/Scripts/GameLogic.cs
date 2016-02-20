@@ -12,11 +12,13 @@ public class GameLogic : MonoBehaviour
 	[SerializeField] private int MaxMissedEnemies = 3; 
 
 	private enum State { TapToStart, Level, Boss, GameOver };
+    private Boss boss;
 
 	private List<GameObject> mActiveEnemies;
 	private DifficultyCurve mCurrentDifficulty;
 	private PlayerCharacter mPlayerCharacter;
     private float mGameOverTime;
+    private float mLevelTimeLeft;
     private float mDistanceTravelled;
 	private int mMissedEnemies;
 	private State mGameStatus;
@@ -38,14 +40,21 @@ public class GameLogic : MonoBehaviour
 		GameInput.OnTap += HandleOnTap;
         GameInput.OnSwipe += HandleOnSwipe;
         GameInput.OnKeyPress += HandleKeyPress;
+
         mActiveEnemies = new List<GameObject>();
 		mCurrentDifficulty = GetComponentInChildren<DifficultyCurve>();
 		mPlayerCharacter = GetComponentInChildren<PlayerCharacter>();
 		mGameStatus = State.TapToStart;
         mGameOverTime = Time.timeSinceLevelLoad;
 		mMissedEnemies = 0;
-		Paused = false;
+        Paused = false;
 	}
+
+    void Start()
+    {
+        //This must be retrieved after the difficulty curve has been "awaken"
+        mLevelTimeLeft = DifficultyCurve.LevelDuration;
+    }
 
 	void Update()
 	{
@@ -55,45 +64,23 @@ public class GameLogic : MonoBehaviour
 		{
 			mDistanceTravelled += GameSpeed * GameDeltaTime;
 			GameText.text = string.Format( "Distance: {0:0.0} m", mDistanceTravelled );
-            /*
-			int enemies = mCurrentDifficulty.SpawnCount();
-			if( enemies == 1 ) 
-			{
-                mActiveEnemies.Add(EnemyFactory.Dispatch((EnemyFactory.Column)Random.Range(0, 3)));
-			}
-			else if( enemies == 2 )
-			{
-				int config = Random.Range( 0, 3 );
-				if( config == 0 )
-				{
-                    mActiveEnemies.Add(EnemyFactory.Dispatch(EnemyFactory.Column.One));
-                    mActiveEnemies.Add(EnemyFactory.Dispatch(EnemyFactory.Column.Two));
-				}
-				else if( config == 1 )
-				{
-                    mActiveEnemies.Add(EnemyFactory.Dispatch(EnemyFactory.Column.One));
-                    mActiveEnemies.Add(EnemyFactory.Dispatch(EnemyFactory.Column.Three));
-				}
-				else 
-				{
-                    mActiveEnemies.Add(EnemyFactory.Dispatch(EnemyFactory.Column.Two));
-                    mActiveEnemies.Add(EnemyFactory.Dispatch(EnemyFactory.Column.Three));
-				}
-			}
-			else if( enemies == 3 )
-			{
-                mActiveEnemies.Add(EnemyFactory.Dispatch(EnemyFactory.Column.One));
-                mActiveEnemies.Add(EnemyFactory.Dispatch(EnemyFactory.Column.Two));
-                mActiveEnemies.Add(EnemyFactory.Dispatch(EnemyFactory.Column.Three));
-			}*/
 
-            int enemies = mCurrentDifficulty.SpawnPattern();
-            for (int ColumnCount = 0; ColumnCount < 3; ColumnCount++)
-            {
-                if ((enemies & (1 << ColumnCount) ) != 0)
+            mLevelTimeLeft -= GameDeltaTime;
+            if (mLevelTimeLeft > 0f) {
+                int enemies = mCurrentDifficulty.SpawnPattern();
+                for (int ColumnCount = 0; ColumnCount < 3; ColumnCount++)
                 {
-                    mActiveEnemies.Add(EnemyFactory.Dispatch((EnemyFactory.Column)ColumnCount));
+                    if ((enemies & (1 << ColumnCount)) != 0)
+                    {
+                        mActiveEnemies.Add(EnemyFactory.Dispatch((EnemyFactory.Column)ColumnCount));
+                    }
                 }
+            }
+            else if (mActiveEnemies.Count == 0)
+            {
+                mGameStatus = State.Boss;
+                mCurrentDifficulty.BossFight();
+                boss = new Boss();
             }
 
             // Update the position of each active enemy, keep a track of enemies which have gone off screen 
@@ -157,8 +144,16 @@ public class GameLogic : MonoBehaviour
 
         if (mGameStatus == State.Boss)
         {
-            GameText.text = "Boss fight!";
+            //GameText.text = "Boss fight!";
 
+            boss.Update(mPlayerCharacter.transform.position);
+
+            //if boss is dead
+            //boss=null;
+            // mCurrentDifficulty.LevelUp();
+            //mGameStatus = State.Level;
+            // mMissedEnemies = 0;
+            // mLevelTimeLeft = DifficultyCurve.LevelDuration;
         }
 
     }
@@ -171,7 +166,8 @@ public class GameLogic : MonoBehaviour
 		mActiveEnemies.Clear();
 		mMissedEnemies = 0;
 		mDistanceTravelled = 0.0f;
-	}
+        mLevelTimeLeft = DifficultyCurve.LevelDuration;
+    }
 
 	private void HandleOnTap( Vector3 position )
 	{

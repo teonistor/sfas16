@@ -5,32 +5,25 @@ using System.Collections;
 public class DifficultyCurve : MonoBehaviour 
 {
 	[SerializeField] private float GameStartSpeed;
-	//[SerializeField] private float GameSpeedRamp = 0.1f;
 	[SerializeField] private float PlayerStartSpeed;
-	//[SerializeField] private float PlayerSpeedRamp = 0.1f;
 	[SerializeField] private float BulletStartSpeed;
-    //[SerializeField] private float BulletSpeedRamp = 0.1f;
-    //[SerializeField] private float TimeBetweenRows = 5.0f;
-    //[SerializeField] private float TimeBetweenWaves = 40.0f;
+    [SerializeField] private float LevelStartDuration;
+    [SerializeField] private float EnemyStartDensity;
+    [SerializeField] private int BossStartStrength;
     
     [SerializeField] private float SpeedGain;
-    [SerializeField] private float EnemyDensity;
     [SerializeField] private float EnemySafeGap;
     [SerializeField] private float EnemyCheckGap;
-    [SerializeField] private float LevelStartDuration;
-
-    //private EnemyWave[] mWaves;
-    //private float mTimeToNextRow;
-    //private float mTimeToNextWave;
-    //private int mCurrentRow;
-    //private int mCurrentWave;
 
     private float [] mTimeToDanger;
+    private float PrevGameSpeed;
+    private float EnemyDensity;
 
-	public static float GameSpeed { get; private set; }
+    public static float GameSpeed { get; private set; }
 	public static float PlayerSpeed { get; private set; }
 	public static float BulletSpeed { get; private set; }
     public static float LevelDuration { get; private set; }
+    public static int BossStrength { get; private set; }
 
     void Awake()
 	{
@@ -56,6 +49,7 @@ public class DifficultyCurve : MonoBehaviour
 		mWaves = waves;*/
     }
 
+    /*
 	void Start()
 	{
 		GameSpeed = GameStartSpeed;
@@ -63,7 +57,7 @@ public class DifficultyCurve : MonoBehaviour
 		BulletSpeed = BulletStartSpeed;
         LevelDuration = LevelStartDuration;
 
-    }
+    }*/
 
     /*
 	public int SpawnCount()
@@ -123,6 +117,22 @@ public class DifficultyCurve : MonoBehaviour
         return pattern;
     }
 
+    public void BossFight()
+    {
+        PrevGameSpeed = GameSpeed;
+        GameSpeed = 0f;
+    }
+
+    public void LevelUp()
+    {
+        GameSpeed = PrevGameSpeed * SpeedGain;
+        PlayerSpeed *= SpeedGain;
+        BulletSpeed *= SpeedGain;
+        LevelDuration *= SpeedGain;
+        EnemyDensity *= SpeedGain;
+        BossStrength *= (int) SpeedGain;
+    }
+
 	public void Stop()
 	{
 		GameSpeed = 0.0f;
@@ -135,9 +145,8 @@ public class DifficultyCurve : MonoBehaviour
 		GameSpeed = GameStartSpeed;
 		PlayerSpeed = PlayerStartSpeed;
 		BulletSpeed = BulletStartSpeed;
-		//mTimeToNextRow = TimeBetweenRows;
-		//mTimeToNextWave = TimeBetweenWaves;
-		//mCurrentRow = 0;
-		//mCurrentWave = 0;
-	}
+        LevelDuration = LevelStartDuration;
+        EnemyDensity = EnemyStartDensity;
+        BossStrength = BossStartStrength;
+    }
 }
