@@ -14,10 +14,14 @@ public class DifficultyCurve : MonoBehaviour
     [SerializeField] private float SpeedGain;
     [SerializeField] private float EnemySafeGap;
     [SerializeField] private float EnemyCheckGap;
+    [SerializeField] private Camera GameplayCamera;
 
     private float [] mTimeToDanger;
-    private float PrevGameSpeed;
+    private float NextGameSpeed;
     private float EnemyDensity;
+
+    private Color LevelColor;
+    private Color BossColor;
 
     public static float GameSpeed { get; private set; }
 	public static float PlayerSpeed { get; private set; }
@@ -27,72 +31,13 @@ public class DifficultyCurve : MonoBehaviour
 
     void Awake()
 	{
-		Reset();
+        LevelColor = new Color(0.262f, 0.236f, 0.574f);
+        BossColor = Color.black;
+
+        Reset();
 
         mTimeToDanger = new float [] { EnemyCheckGap, EnemyCheckGap, EnemyCheckGap };
-        /*
-		EnemyWave [] waves = { 
-			new EnemyWave( 1, 1 ), 
-			new EnemyWave( 1, 2 ), 
-			new EnemyWave( 1, 3 ), 
-			new EnemyWave( 1, 4 ), 
-			new EnemyWave( 2, 3 ), 
-			new EnemyWave( 2, 4 ), 
-			new EnemyWave( 2, 5 ), 
-			new EnemyWave( 3, 3 ), 
-			new EnemyWave( 3, 4 ), 
-			new EnemyWave( 3, 5 ), 
-			new EnemyWave( 3, 6 ), 
-			new EnemyWave( 3, 8 ) 
-		};
-
-		mWaves = waves;*/
     }
-
-    /*
-	void Start()
-	{
-		GameSpeed = GameStartSpeed;
-		PlayerSpeed = PlayerStartSpeed;
-		BulletSpeed = BulletStartSpeed;
-        LevelDuration = LevelStartDuration;
-
-    }*/
-
-    /*
-	public int SpawnCount()
-	{
-		int enemiesToSpawn = 0;
-
-		if( mCurrentRow < mWaves[mCurrentWave].NumberOfRows )
-		{
-			mTimeToNextRow -= GameLogic.GameDeltaTime;
-			if( mTimeToNextRow <= 0.0f )
-			{
-				mCurrentRow++;
-				enemiesToSpawn = mWaves[mCurrentWave].EnemiesPerRow;
-				mTimeToNextRow = TimeBetweenRows;
-			}
-		}
-		else
-		{
-			mTimeToNextWave -= GameLogic.GameDeltaTime;
-			if( mTimeToNextWave <= 0.0f )
-			{
-				if( ( mCurrentWave + 1 ) < mWaves.Length )
-				{
-					GameSpeed += GameSpeedRamp;
-					PlayerSpeed += PlayerSpeedRamp;
-					BulletSpeed += BulletSpeedRamp;
-					mCurrentWave++;
-				}
-				mTimeToNextWave = TimeBetweenWaves;
-				mCurrentRow = 0;
-			}
-		}
-
-		return enemiesToSpawn;
-	}*/
 
     public int SpawnPattern()
     {
@@ -117,20 +62,35 @@ public class DifficultyCurve : MonoBehaviour
         return pattern;
     }
 
-    public void BossFight()
+    public bool SlowDown()
     {
-        PrevGameSpeed = GameSpeed;
-        GameSpeed = 0f;
+        GameplayCamera.backgroundColor = Color.Lerp(GameplayCamera.backgroundColor, BossColor, GameLogic.GameDeltaTime * 2f);
+        if (NextGameSpeed == 0f) {
+            NextGameSpeed = GameSpeed * SpeedGain;
+        }
+        GameSpeed = Mathf.Lerp(GameSpeed, 0f, GameLogic.GameDeltaTime * 1.5f);
+        if (GameSpeed < 0.1f) {
+            GameSpeed = 0f;
+            return true;
+        }
+        return false;
     }
 
-    public void LevelUp()
+    public bool LevelUp()
     {
-        GameSpeed = PrevGameSpeed * SpeedGain;
-        PlayerSpeed *= SpeedGain;
-        BulletSpeed *= SpeedGain;
-        LevelDuration *= SpeedGain;
-        EnemyDensity *= SpeedGain;
-        BossStrength *= (int) SpeedGain;
+        GameSpeed = Mathf.Lerp(GameSpeed, NextGameSpeed, GameLogic.GameDeltaTime * 1.5f);
+        GameplayCamera.backgroundColor = Color.Lerp(GameplayCamera.backgroundColor, LevelColor, GameLogic.GameDeltaTime * 2f);
+        if (Mathf.Abs (GameSpeed-NextGameSpeed) < 0.1f) {
+            GameSpeed = NextGameSpeed;
+            NextGameSpeed = 0f;
+            PlayerSpeed *= SpeedGain;
+            BulletSpeed *= SpeedGain;
+            LevelDuration *= SpeedGain;
+            EnemyDensity *= SpeedGain;
+            BossStrength *= (int)SpeedGain;
+            return true;
+        }
+        return false;
     }
 
 	public void Stop()
@@ -148,5 +108,6 @@ public class DifficultyCurve : MonoBehaviour
         LevelDuration = LevelStartDuration;
         EnemyDensity = EnemyStartDensity;
         BossStrength = BossStartStrength;
+        GameplayCamera.backgroundColor = LevelColor;
     }
 }

@@ -6,13 +6,16 @@ public class GameLogic : MonoBehaviour
 {
 	[SerializeField] private TextMesh GameText;
 	[SerializeField] private Camera GameplayCamera;
-	[SerializeField] private float PlayerKillDistance = 10.0f;  
-	[SerializeField] private float BulletKillDistance = 10.0f;
-    [SerializeField] private float WaitTime = 1.0f;
-	[SerializeField] private int MaxMissedEnemies = 3; 
+	[SerializeField] private Material EnemyMaterial; 
+	[SerializeField] private float PlayerKillDistance;  
+	[SerializeField] private float BulletKillDistance; 
+	[SerializeField] private float BossHitDistance;
+    [SerializeField] private float WaitTime;
+	[SerializeField] private int MaxMissedEnemies;
 
 	private enum State { TapToStart, Level, Boss, GameOver };
     private Boss boss;
+    private bool bossAlive;
 
 	private List<GameObject> mActiveEnemies;
 	private DifficultyCurve mCurrentDifficulty;
@@ -78,9 +81,12 @@ public class GameLogic : MonoBehaviour
             }
             else if (mActiveEnemies.Count == 0)
             {
-                mGameStatus = State.Boss;
-                mCurrentDifficulty.BossFight();
-                boss = new Boss();
+                //Switching game type
+                if (mCurrentDifficulty.SlowDown()) {
+                    mGameStatus = State.Boss;
+                    bossAlive = true;
+                    boss = new Boss(GameplayCamera, EnemyMaterial);
+                }
             }
 
             // Update the position of each active enemy, keep a track of enemies which have gone off screen 
@@ -144,23 +150,67 @@ public class GameLogic : MonoBehaviour
 
         if (mGameStatus == State.Boss)
         {
-            //GameText.text = "Boss fight!";
+            if (bossAlive) {
 
-            boss.Update(mPlayerCharacter.transform.position);
+                //Move and rotate boss
+                boss.Update(mPlayerCharacter.transform.position);
 
-            //if boss is dead
-            //boss=null;
-            // mCurrentDifficulty.LevelUp();
-            //mGameStatus = State.Level;
-            // mMissedEnemies = 0;
-            // mLevelTimeLeft = DifficultyCurve.LevelDuration;
+                //Check doom height
+                if (boss.Position().y < ScreenHeight * -0.25f)
+                {
+                    //Perform game over sh%t
+                    mCurrentDifficulty.Stop();
+                    mGameOverTime = Time.timeSinceLevelLoad;
+                    if (boss.Invade(mPlayerCharacter.transform.position))
+                    {
+                        mGameStatus = State.GameOver;
+                        GameText.text = string.Format("You have been eaten!\nTotal distance: {0:0.0} m", mDistanceTravelled);
+                    }
+                }
+
+                //Check bullets
+                for (int bullet = 0; bullet < mPlayerCharacter.Weapon.ActiveBullets.Count; bullet++)
+                {
+                    if (mPlayerCharacter.Weapon.ActiveBullets[bullet].activeInHierarchy)
+                    {
+                        Vector3 diffToBullet = boss.Position() - mPlayerCharacter.Weapon.ActiveBullets[bullet].transform.position;
+                        if (diffToBullet.sqrMagnitude < BossHitDistance)
+                        {
+                            mPlayerCharacter.Weapon.ActiveBullets[bullet].SetActive(false);
+                            if (boss.Hit(10))
+                            {
+                                boss = null;
+                                bossAlive = false;
+                            }
+                            break;
+                        }
+                    }
+                }
+
+            }
+            else {
+                //No more boss, transitioning to normal
+                mDistanceTravelled += GameSpeed * GameDeltaTime;
+                GameText.text = string.Format("Distance: {0:0.0} m", mDistanceTravelled);
+
+                if (mCurrentDifficulty.LevelUp()) {
+                    mGameStatus = State.Level;
+                    mMissedEnemies = 0;
+                    mLevelTimeLeft = DifficultyCurve.LevelDuration;
+                    print(mLevelTimeLeft);
+                }
+            }
         }
-
     }
 
 	private void Reset()
 	{
-		mPlayerCharacter.Reset();
+        for (int bullet = 0; bullet < mPlayerCharacter.Weapon.ActiveBullets.Count; bullet++) {
+            mPlayerCharacter.Weapon.ActiveBullets[bullet].SetActive(false);
+        }
+        if (boss != null)
+            boss.Destroy();
+        mPlayerCharacter.Reset();
 		mCurrentDifficulty.Reset();
 		EnemyFactory.Reset();
 		mActiveEnemies.Clear();
