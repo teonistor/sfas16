@@ -237,7 +237,7 @@ public class GameLogic : MonoBehaviour
             if (Time.timeSinceLevelLoad - mGameOverTime > WaitTime)
             { 
 			    Reset();
-			    GameText.text = "Tap to Start";
+			    GameText.text = "Tap to start";
 			    mGameStatus = State.TapToStart;
 			}
             break;
@@ -293,7 +293,7 @@ public class GameLogic : MonoBehaviour
                     (direction == GameInput.Direction.Up || direction == GameInput.Direction.Through))
                 {
                     Reset();
-                    GameText.text = "Tap to Start";
+                    GameText.text = "Tap to start";
                     mGameStatus = State.TapToStart;
                 }
                 break;

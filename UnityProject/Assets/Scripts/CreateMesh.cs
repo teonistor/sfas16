@@ -29,9 +29,26 @@ public class CreateMesh : MonoBehaviour
 		verts[6] = new Vector3( narrow, -wide, 0.0f );
 
 		return verts;
-	}
-	
-	private int [] GetTriangles()
+    }
+
+    private Vector2[] GetUVs(float size)
+    {
+        Vector2[] uv = new Vector2[7];
+        float wide = size * 0.5f;
+        float narrow = size * 0.2f;
+
+        uv[0] = new Vector2(0.0f, wide);
+        uv[1] = new Vector2(-wide, 0.0f);
+        uv[2] = new Vector2(wide, 0.0f);
+        uv[3] = new Vector2(-narrow, 0.0f);
+        uv[4] = new Vector2(narrow, 0.0f);
+        uv[5] = new Vector2(-narrow, -wide);
+        uv[6] = new Vector2(narrow, -wide);
+
+        return uv;
+    }
+
+    private int [] GetTriangles()
 	{
 		int [] starTriangles = new int[9];
 		
@@ -54,7 +71,8 @@ public class CreateMesh : MonoBehaviour
 		m.name = "ScriptedMesh";
 		m.vertices = GetVerts( Size ); 
 		m.triangles = GetTriangles();
-		m.RecalculateNormals();
+        m.uv = GetUVs(Size);
+        m.RecalculateNormals();
 		
 		return m;
 	}
