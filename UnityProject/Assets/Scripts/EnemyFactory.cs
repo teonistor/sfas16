@@ -12,7 +12,7 @@ public class EnemyFactory : MonoBehaviour
 	[SerializeField] private Material EnemyMaterial; 
 	[SerializeField] private float EnemyScale = 1.5f; 
 	[Range( 1, 100 )]
-	[SerializeField] private int EnemyPoolSize = 10; 
+	[SerializeField] private int EnemyPoolSize; 
 	
 	private GameObject [] mPool;
 	private List<GameObject> mActive;
@@ -34,7 +34,7 @@ public class EnemyFactory : MonoBehaviour
 			mPool = new GameObject[EnemyPoolSize];
             for (int count = 0; count < mPool.Length; count++)
 			{
-				GameObject enemy = new GameObject( "Enemy_PoolID" + ( count + 1 ) );
+				GameObject enemy = new GameObject( "Enemy_Pool_ID_" + ( count + 1 ) );
 				CreateMesh m = enemy.AddComponent<CreateMesh>();
 				m.Material = EnemyMaterial;
 				enemy.transform.localScale = new Vector3( EnemyScale, EnemyScale, EnemyScale );
@@ -90,7 +90,7 @@ public class EnemyFactory : MonoBehaviour
 
 	private GameObject DoDispatch( Column column )
 	{
-		// Look for a free enemy and then dispatch them 
+		// Dispatch the first inactive enemy in the list
 		GameObject result = null;
 		if( mInactive.Count > 0 )
 		{
@@ -106,7 +106,15 @@ public class EnemyFactory : MonoBehaviour
 			result = enemy;
 		}
 		
-		// Returns true if a free enemy was found and dispatched
 		return result;
 	}
+
+    public static List<GameObject> GetActiveEnemies()
+    {
+        if (mInstance!= null)
+        {
+            return mInstance.mActive;
+        }
+        return null;
+    }
 }

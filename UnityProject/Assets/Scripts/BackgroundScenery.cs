@@ -18,7 +18,7 @@ public class BackgroundScenery : MonoBehaviour
 		mPool = new GameObject[SceneryPoolSize];
 		for( int count = 0; count < SceneryPoolSize; count++ )
 		{
-			GameObject sceneryItem = new GameObject( "Scenery_PoolID" + ( count + 1 ) );
+			GameObject sceneryItem = new GameObject( "Scenery_Pool_ID_" + ( count + 1 ) );
 			CreateMesh m = sceneryItem.AddComponent<CreateMesh>();
 			m.Material = SceneryMaterial;
 			float x = Random.Range( -GameLogic.ScreenBounds, GameLogic.ScreenBounds );

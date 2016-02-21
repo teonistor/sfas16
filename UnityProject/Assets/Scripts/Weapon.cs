@@ -4,52 +4,55 @@ using System.Collections.Generic;
 
 public class Weapon : MonoBehaviour 
 {
-	[SerializeField] private Material BulletMaterial; 
-	[SerializeField] private float BulletScale = 0.5f; 
-	[SerializeField] private float RechargeTime = 0.25f; 
-	[Range( 1, 100 )]
-	[SerializeField] private int BulletPoolSize = 10; 
+	[SerializeField] private Material BulletMaterialNormal;
+	[SerializeField] private Material BulletMaterialGolden;
+	[SerializeField] private Material BulletMaterialIce;
+	[SerializeField] private Material BulletMaterialExplosive;
+	[SerializeField] private float BulletScale;
+	[SerializeField] private float RechargeTime;
 
-	private GameObject [] mPool;
-	private List<GameObject> mActive;
-	private List<GameObject> mInactive;
+	[Range( 1, 100 )] [SerializeField] private int BulletPoolSize;
+
+	private Bullet[] mPool;
+	private List<Bullet> mActive;
+	private List<Bullet> mInactive;
 	private float mCharging;
 
-    private Color [] BulletColors;
+    private Color [] BulletNormalColors;
     public enum Theme {Dark, Bright};
+    public static Material[] BulletMaterials { get; private set;}
 
-	public List<GameObject> ActiveBullets { get { return mActive; } }
+	public List<Bullet> ActiveBullets { get { return mActive; } }
 
-	void Awake()
-	{
-        //Create the 2 theme colors
-        BulletColors = new Color[] {
+	void Awake() {
+        //Put materials in array
+        BulletMaterials = new Material[] { BulletMaterialNormal, BulletMaterialGolden, BulletMaterialIce, BulletMaterialExplosive };
+
+        //Create the 2 theme colors for the normal bullet
+        BulletNormalColors = new Color[] {
             new Color (0.099f, 0.094f, 0.132f),
             new Color (0.9f, 0.9f, 0.92f)
         };
         
-        // Create the bullets, initialise the active and available lists, put all bullets in the available list
-		mActive = new List<GameObject>();
-		mInactive = new List<GameObject>();
-		mPool = new GameObject[BulletPoolSize];
+        // Create active and available lists, and an array of all bullets
+		mActive = new List<Bullet>();
+		mInactive = new List<Bullet>();
+		mPool = new Bullet[BulletPoolSize];
+
+        //Create bullets and add to lists
         for (int count = 0; count < mPool.Length; count++)
 		{
-			GameObject bullet = new GameObject( "Bullet_PoolID" + ( count + 1 ) );
-			CreateMesh m = bullet.AddComponent<CreateMesh>();
-			m.Material = BulletMaterial;
-            bullet.transform.localScale = new Vector3( BulletScale, BulletScale, BulletScale );
-			bullet.transform.parent = transform;
+            Bullet bullet = new Bullet (count,transform,BulletScale);
             mPool[count] = bullet;
 			mInactive.Add( bullet );
-			bullet.SetActive( false );
 		}
 		mCharging = 0.0f;
 	}
 
 	void Update()
 	{
-		// Update the position of each active bullet, keep a track of bullets which have gone off screen 
-		List<GameObject> oldBullets = new List<GameObject>(); 
+        // Update the position of each active bullet, keep a track of bullets which have gone off screen 
+        /*List<GameObject> oldBullets = new List<GameObject>(); 
 		for( int count = 0; count < mActive.Count; count++ )
 		{
 			Vector3 position = mActive[count].transform.position;
@@ -68,35 +71,40 @@ public class Weapon : MonoBehaviour
             oldBullets[count].transform.parent = transform;
             mActive.Remove(oldBullets[count]);
 			mInactive.Add( oldBullets[count] ); 
-		}
+		}*/
 
-		if( mCharging > 0.0f )
-		{
+        List<Bullet> ActiveLocal = new List<Bullet>(mActive);
+        foreach (Bullet bullet in ActiveLocal) {
+            if (bullet.Update()) {
+                mActive.Remove(bullet);
+                mInactive.Add(bullet);
+            }
+        }
+
+		if( mCharging > 0.0f ) {
 			mCharging -= GameLogic.GameDeltaTime;
 		}
 	}
 
 	public bool Fire( Vector3 position )
 	{
-		// Look for a free bullet and then fire it from the player position
-		bool result = false;
+		// If the gun is not charging, fire the first bullet in the available list
 		if( mInactive.Count > 0 && mCharging <= 0.0f )
 		{
-			GameObject bullet = mInactive[0];
-            bullet.transform.parent = null;
-            bullet.transform.position = position;
-			bullet.SetActive( true );
-			mActive.Add( bullet );
-			mInactive.Remove( bullet );
+			mInactive[0].Fire (Bullet.Type.Golden, position);
+			mActive.Add(mInactive[0]);
+			mInactive.Remove(mInactive[0]);
+
+            //Reset charging time
 			mCharging = RechargeTime;
-			result = true;
 		}
         
-		return result;
+		return false;
 	}
 
+    //Normal bullets can change color depending on the background color
     public void SetBulletTheme (Theme theme)
     {
-        BulletMaterial.color = BulletColors[(int)theme];
+        BulletMaterialNormal.color = BulletNormalColors[(int)theme];
     }
 }

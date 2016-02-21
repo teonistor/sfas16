@@ -5,6 +5,7 @@ public class PlayerCharacter : MonoBehaviour
 {
 	[SerializeField] private Camera GameplayCamera;
 	[SerializeField] private float FireOffset;
+    [SerializeField] private float PlayerScale;
 
 	private Weapon mGun;
 	private float mTargetPosition;
@@ -21,10 +22,14 @@ public class PlayerCharacter : MonoBehaviour
 	{
 		mColumnSize = ( GameLogic.ScreenHeight * GameplayCamera.aspect * 0.8f ) / 3;
 
+        //Set the starting position
 		Vector3 position = transform.position;
 		position.y = GameLogic.ScreenHeight * -0.4f;
 		mStartY = position.y; 
 		transform.position = position;
+
+        //Set the size
+        transform.localScale = new Vector3(PlayerScale, PlayerScale, PlayerScale);
 
 		// Look for the gun
 		mGun = GetComponentInChildren<Weapon>();

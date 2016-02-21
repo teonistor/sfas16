@@ -17,7 +17,7 @@ public class GameLogic : MonoBehaviour
     private Boss boss;
     private bool bossAlive;
 
-	private List<GameObject> mActiveEnemies;
+	//private List<GameObject> mActiveEnemies;
 	private DifficultyCurve mCurrentDifficulty;
 	private PlayerCharacter mPlayerCharacter;
     private float mGameOverTime;
@@ -44,7 +44,7 @@ public class GameLogic : MonoBehaviour
         GameInput.OnSwipe += HandleOnSwipe;
         GameInput.OnKeyPress += HandleKeyPress;
 
-        mActiveEnemies = new List<GameObject>();
+        //mActiveEnemies = new List<GameObject>();
 		mCurrentDifficulty = GetComponentInChildren<DifficultyCurve>();
 		mPlayerCharacter = GetComponentInChildren<PlayerCharacter>();
 		mGameStatus = State.TapToStart;
@@ -62,8 +62,9 @@ public class GameLogic : MonoBehaviour
 	void Update()
 	{
 		GameDeltaTime = Paused ? 0.0f : Time.deltaTime;
+        List<GameObject> mActiveEnemies = new List<GameObject> ( EnemyFactory.GetActiveEnemies());
 
-		if( mGameStatus == State.Level )
+        if ( mGameStatus == State.Level )
 		{
 			mDistanceTravelled += GameSpeed * GameDeltaTime;
 			GameText.text = string.Format( "Distance: {0:0.0} m", mDistanceTravelled );
@@ -91,7 +92,8 @@ public class GameLogic : MonoBehaviour
             }
 
             // Update the position of each active enemy, keep a track of enemies which have gone off screen 
-            List<GameObject> oldEnemys = new List<GameObject>(); 
+            //List<GameObject> oldEnemys = new List<GameObject>();
+
 			for( int count = 0; count < mActiveEnemies.Count; count++ )
             { 
 				Vector3 position = mActiveEnemies[count].transform.position;
@@ -100,7 +102,7 @@ public class GameLogic : MonoBehaviour
 				if( position.y < ScreenHeight * -0.5f )
 				{
 					EnemyFactory.Return( mActiveEnemies[count] );
-					oldEnemys.Add( mActiveEnemies[count] ); 
+					//oldEnemys.Add( mActiveEnemies[count] ); 
 					mMissedEnemies++;
 				}
 				else
@@ -116,9 +118,11 @@ public class GameLogic : MonoBehaviour
 					}
 					else
 					{
-						for( int bullet = 0; bullet < mPlayerCharacter.Weapon.ActiveBullets.Count; bullet++ )
+                        //List<Bullet> TempBullets = mPlayerCharacter.Weapon.ActiveBullets.Clo
+
+                        for ( int bullet = 0; bullet < mPlayerCharacter.Weapon.ActiveBullets.Count; bullet++ )
 						{
-							if( mPlayerCharacter.Weapon.ActiveBullets[bullet].activeInHierarchy )
+                            /*if( mPlayerCharacter.Weapon.ActiveBullets[bullet].activeInHierarchy )
 							{
 								Vector3 diffToBullet = mActiveEnemies[count].transform.position - mPlayerCharacter.Weapon.ActiveBullets[bullet].transform.position;
 								if( diffToBullet.sqrMagnitude < BulletKillDistance )
@@ -128,8 +132,14 @@ public class GameLogic : MonoBehaviour
 									mPlayerCharacter.Weapon.ActiveBullets[bullet].SetActive( false );
 									break;
 								}
-							}
-						}
+							}*/
+                            if (mPlayerCharacter.Weapon.ActiveBullets[bullet].CheckHit(position, BulletKillDistance))
+                            {
+                                EnemyFactory.Return(mActiveEnemies[count]);
+                                //oldEnemys.Add(mActiveEnemies[count]);
+                                break;
+                            }
+                        }
 					}
 				}
 			}
@@ -143,10 +153,10 @@ public class GameLogic : MonoBehaviour
 				GameText.text = string.Format( "You have been invaded!\nTotal distance: {0:0.0} m", mDistanceTravelled );
 			}
 
-			for( int count = 0; count < oldEnemys.Count; count++ )
+			/*for( int count = 0; count < oldEnemys.Count; count++ )
 			{
 				mActiveEnemies.Remove( oldEnemys[count] );
-			}
+			}*/
 		}
 
         if (mGameStatus == State.Boss)
@@ -170,9 +180,8 @@ public class GameLogic : MonoBehaviour
                 }
 
                 //Check bullets
-                for (int bullet = 0; bullet < mPlayerCharacter.Weapon.ActiveBullets.Count; bullet++)
-                {
-                    if (mPlayerCharacter.Weapon.ActiveBullets[bullet].activeInHierarchy)
+                foreach (Bullet bullet in mPlayerCharacter.Weapon.ActiveBullets) {
+                    /*if (mPlayerCharacter.Weapon.ActiveBullets[bullet].activeInHierarchy)
                     {
                         Vector3 diffToBullet = boss.Position() - mPlayerCharacter.Weapon.ActiveBullets[bullet].transform.position;
                         if (diffToBullet.sqrMagnitude < BossHitDistance)
@@ -185,6 +194,14 @@ public class GameLogic : MonoBehaviour
                             }
                             break;
                         }
+                    }*/
+                    if (bullet.CheckHit(boss.Position(), BossHitDistance)) {
+                        if (boss.Hit(bullet.DamageValue))
+                        {
+                            boss = null;
+                            bossAlive = false;
+                        }
+                        break;
                     }
                 }
 
@@ -215,7 +232,7 @@ public class GameLogic : MonoBehaviour
         mPlayerCharacter.Weapon.SetBulletTheme(Weapon.Theme.Dark);
         mCurrentDifficulty.Reset();
 		EnemyFactory.Reset();
-		mActiveEnemies.Clear();
+		//mActiveEnemies.Clear();
 		mMissedEnemies = 0;
 		mDistanceTravelled = 0.0f;
         mLevelTimeLeft = DifficultyCurve.LevelDuration;

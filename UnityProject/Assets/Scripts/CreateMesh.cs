@@ -4,7 +4,7 @@ using System.Collections;
 public class CreateMesh : MonoBehaviour 
 {
 	[SerializeField] private Material Mat;
-	[SerializeField] private float Size = 1.0f;
+	//[SerializeField] private float Size = 1.0f;
 
 	private MeshRenderer mMeshRenderer;
 	private MeshFilter mMesh;
@@ -14,11 +14,11 @@ public class CreateMesh : MonoBehaviour
 		set { Mat = value; }
 	}
 	
-	private Vector3 [] GetVerts( float size )
-	{
-		Vector3 [] verts = new Vector3[7]; 
-		float wide = size * 0.5f;
-		float narrow = size * 0.2f;
+	private Vector3 [] GetVerts() {
+		Vector3 [] verts = new Vector3[7];
+        //Dimensions are within a 1x1 square
+		float wide = 0.5f;
+		float narrow = 0.2f;
 		
 		verts[0] = new Vector3( 0.0f, wide, 0.0f );
 		verts[1] = new Vector3( -wide, 0.0f, 0.0f );
@@ -31,11 +31,10 @@ public class CreateMesh : MonoBehaviour
 		return verts;
     }
 
-    private Vector2[] GetUVs(float size)
-    {
+    private Vector2[] GetUVs() {
         Vector2[] uv = new Vector2[7];
-        float wide = size * 0.5f;
-        float narrow = size * 0.2f;
+        float wide = 0.5f;
+        float narrow = 0.2f;
 
         uv[0] = new Vector2(0.0f, wide);
         uv[1] = new Vector2(-wide, 0.0f);
@@ -69,9 +68,9 @@ public class CreateMesh : MonoBehaviour
 	{
 		Mesh m = new Mesh();
 		m.name = "ScriptedMesh";
-		m.vertices = GetVerts( Size ); 
+		m.vertices = GetVerts(); 
 		m.triangles = GetTriangles();
-        m.uv = GetUVs(Size);
+        m.uv = GetUVs();
         m.RecalculateNormals();
 		
 		return m;
