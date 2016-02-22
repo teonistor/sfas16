@@ -79,6 +79,8 @@ public class GameLogic : MonoBehaviour
                         mActiveEnemies.Add(EnemyFactory.Dispatch((EnemyFactory.Column)ColumnCount));
                     }
                 }
+
+                PowerupFactory.DetectCollisions(mPlayerCharacter.transform.position);
             }
             else if (mActiveEnemies.Count == 0)
             {
@@ -211,6 +213,8 @@ public class GameLogic : MonoBehaviour
                 mDistanceTravelled += GameSpeed * GameDeltaTime;
                 GameText.text = string.Format("Distance: {0:0.0} m", mDistanceTravelled);
 
+                PowerupFactory.DetectCollisions(mPlayerCharacter.transform.position);
+
                 if (mCurrentDifficulty.LevelUp()) {
                     mGameStatus = State.Level;
                     mMissedEnemies = 0;
@@ -232,6 +236,7 @@ public class GameLogic : MonoBehaviour
         mPlayerCharacter.Weapon.SetBulletTheme(Weapon.Theme.Dark);
         mCurrentDifficulty.Reset();
 		EnemyFactory.Reset();
+        PowerupFactory.Reset();
 		//mActiveEnemies.Clear();
 		mMissedEnemies = 0;
 		mDistanceTravelled = 0.0f;

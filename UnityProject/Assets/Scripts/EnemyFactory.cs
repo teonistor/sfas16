@@ -68,7 +68,8 @@ public class EnemyFactory : MonoBehaviour
 			if( mInstance.mActive.Remove( enemy ) )
 			{
 				enemy.SetActive( false );
-				mInstance.mInactive.Add( enemy ); 
+				mInstance.mInactive.Add( enemy );
+                return true;
 			}
 		}
 		return false;

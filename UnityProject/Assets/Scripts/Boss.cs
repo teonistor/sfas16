@@ -51,6 +51,7 @@ public class Boss {
         if (NextPosition.y < GameLogic.ScreenHeight * 0.4f)
             NextPosition.y += 3f;
         if (health < 0) {
+            PowerupFactory.ProduceExplosion(TheBoss.transform.position);
             Destroy();
             return true;
         }
