@@ -93,7 +93,7 @@ public class DifficultyCurve : MonoBehaviour
         return false;
     }
 
-	public void Stop()
+	public void GameOver()
 	{
 		GameSpeed = 0.0f;
 		PlayerSpeed = 0.0f;

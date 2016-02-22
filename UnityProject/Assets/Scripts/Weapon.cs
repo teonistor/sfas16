@@ -73,11 +73,11 @@ public class Weapon : MonoBehaviour
 			mInactive.Add( oldBullets[count] ); 
 		}*/
 
-        List<Bullet> ActiveLocal = new List<Bullet>(mActive);
-        foreach (Bullet bullet in ActiveLocal) {
-            if (bullet.Update()) {
-                mActive.Remove(bullet);
-                mInactive.Add(bullet);
+        //List<Bullet> ActiveLocal = new List<Bullet>(mActive);
+        for (int i = mActive.Count - 1; i>= 0; i--) {
+            if (mActive[i].Update()) {
+                mInactive.Add(mActive[i]);
+                mActive.RemoveAt(i);
             }
         }
 

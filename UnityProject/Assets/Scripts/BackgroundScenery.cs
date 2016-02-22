@@ -24,7 +24,11 @@ public class BackgroundScenery : MonoBehaviour
 			float x = Random.Range( -GameLogic.ScreenBounds, GameLogic.ScreenBounds );
 			float y = Random.Range( GameLogic.ScreenHeight * -0.5f, GameLogic.ScreenHeight * 0.5f );
 			float scale = Random.Range( SceneryMinScale, SceneryMaxScale );
-			sceneryItem.transform.position = new Vector3( x, y, 0.0f );
+
+            /* Put the scenery at 0.1 depth, because there seems to be no other reliable way to make sure
+             * it doesn't get rendered in front of the actors.
+             */
+			sceneryItem.transform.position = new Vector3( x, y, 0.1f );
 			sceneryItem.transform.localScale = new Vector3( scale, scale, scale );
 			sceneryItem.transform.localRotation = Quaternion.AngleAxis( 180.0f, Vector3.forward );
 			sceneryItem.transform.parent = transform;

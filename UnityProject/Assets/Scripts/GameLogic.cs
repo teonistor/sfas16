@@ -26,7 +26,10 @@ public class GameLogic : MonoBehaviour
 	private int mMissedEnemies;
 	private State mGameStatus;
 
-	public static float GameDeltaTime { get; private set; }
+    private List<GameObject> mActiveEnemies { get {return EnemyFactory.GetActiveEnemies(); } }
+
+
+    public static float GameDeltaTime { get; private set; }
 	public static float GameSpeed { get { return DifficultyCurve.GameSpeed; } }
 	public static float PlayerSpeed { get { return DifficultyCurve.PlayerSpeed; } }
 	public static float BulletSpeed { get { return DifficultyCurve.BulletSpeed; } }
@@ -62,7 +65,7 @@ public class GameLogic : MonoBehaviour
 	void Update()
 	{
 		GameDeltaTime = Paused ? 0.0f : Time.deltaTime;
-        List<GameObject> mActiveEnemies = new List<GameObject> ( EnemyFactory.GetActiveEnemies());
+        //List<GameObject> mActiveEnemies = new List<GameObject> ( EnemyFactory.GetActiveEnemies());
 
         if ( mGameStatus == State.Level )
 		{
@@ -76,7 +79,9 @@ public class GameLogic : MonoBehaviour
                 {
                     if ((enemies & (1 << ColumnCount)) != 0)
                     {
-                        mActiveEnemies.Add(EnemyFactory.Dispatch((EnemyFactory.Column)ColumnCount));
+                        //The double-speed problem lies here: enemies are added twice!
+                        //mActiveEnemies.Add(EnemyFactory.Dispatch((EnemyFactory.Column)ColumnCount));
+                        EnemyFactory.Dispatch((EnemyFactory.Column)ColumnCount);
                     }
                 }
 
@@ -96,24 +101,31 @@ public class GameLogic : MonoBehaviour
             // Update the position of each active enemy, keep a track of enemies which have gone off screen 
             //List<GameObject> oldEnemys = new List<GameObject>();
 
-			for( int count = 0; count < mActiveEnemies.Count; count++ )
+            /* Traverse the list descendingly so that removals of already visited elements does not affect the
+             * elements yet to be visited.
+             */
+			for( int count = mActiveEnemies.Count-1; count >=0; count-- )
             { 
-				Vector3 position = mActiveEnemies[count].transform.position;
-				position.y -= GameDeltaTime * GameSpeed;
-				mActiveEnemies[count].transform.position = position;
-				if( position.y < ScreenHeight * -0.5f )
+				Vector3 ThisPosition = mActiveEnemies[count].transform.position;
+
+                //Update each enemy's position according to the game speed
+				ThisPosition.y -= GameDeltaTime * GameSpeed;
+				mActiveEnemies[count].transform.position = ThisPosition;
+
+                //Check if the enemy has flown off screen. If so, return it to the factory and count it as missed.
+				if( ThisPosition.y < ScreenHeight * -0.5f )
 				{
 					EnemyFactory.Return( mActiveEnemies[count] );
-					//oldEnemys.Add( mActiveEnemies[count] ); 
+					///oldEnemys.Add( mActiveEnemies[count] ); 
 					mMissedEnemies++;
 				}
 				else
 				{
-					Vector3 diff = mPlayerCharacter.transform.position - mActiveEnemies[count].transform.position;
-					if( diff.sqrMagnitude < PlayerKillDistance )
-					{
+                    //Check if the enemy is too close to the player. If so, end the game.
+					Vector3 diff = mPlayerCharacter.transform.position - ThisPosition;
+					if( diff.sqrMagnitude < PlayerKillDistance) {
 						// Touched enemny - Game over
-						mCurrentDifficulty.Stop();
+						mCurrentDifficulty.GameOver();
                         mGameOverTime = Time.timeSinceLevelLoad;
 						mGameStatus = State.GameOver;
 						GameText.text = string.Format( "You died!\nTotal distance: {0:0.0} m", mDistanceTravelled );
@@ -135,7 +147,7 @@ public class GameLogic : MonoBehaviour
 									break;
 								}
 							}*/
-                            if (mPlayerCharacter.Weapon.ActiveBullets[bullet].CheckHit(position, BulletKillDistance))
+                            if (mPlayerCharacter.Weapon.ActiveBullets[bullet].CheckHit(ThisPosition, BulletKillDistance))
                             {
                                 EnemyFactory.Return(mActiveEnemies[count]);
                                 //oldEnemys.Add(mActiveEnemies[count]);
@@ -149,7 +161,7 @@ public class GameLogic : MonoBehaviour
 			if( mMissedEnemies >= MaxMissedEnemies )
 			{
                 // Too many missed enemies - Game over
-				mCurrentDifficulty.Stop();
+				mCurrentDifficulty.GameOver();
                 mGameOverTime = Time.timeSinceLevelLoad;
                 mGameStatus = State.GameOver;
 				GameText.text = string.Format( "You have been invaded!\nTotal distance: {0:0.0} m", mDistanceTravelled );
@@ -172,7 +184,7 @@ public class GameLogic : MonoBehaviour
                 if (boss.Position().y < ScreenHeight * -0.25f)
                 {
                     //Perform game over sh%t
-                    mCurrentDifficulty.Stop();
+                    mCurrentDifficulty.GameOver();
                     mGameOverTime = Time.timeSinceLevelLoad;
                     if (boss.Invade(mPlayerCharacter.transform.position))
                     {
