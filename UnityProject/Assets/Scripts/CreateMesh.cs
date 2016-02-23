@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+/* Arrow-shaped mesh for player, enemies and background scenery
+ */
 public class CreateMesh : MonoBehaviour 
 {
 	[SerializeField] private Material Mat;

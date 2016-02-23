@@ -13,9 +13,9 @@ public class GameLogic : MonoBehaviour
     [SerializeField] private float WaitTime;
 	[SerializeField] private int MaxMissedEnemies;
 
-	private enum State { TapToStart, Level, Boss, GameOver };
+	private enum State { TapToStart, Level, Boss, GameOver }; //will add: tutorial, freeze (?)
     private Boss boss;
-    private bool bossAlive;
+    //private bool bossAlive;
 
 	//private List<GameObject> mActiveEnemies;
 	private DifficultyCurve mCurrentDifficulty;
@@ -92,10 +92,14 @@ public class GameLogic : MonoBehaviour
                 //Switching game type
                 if (mCurrentDifficulty.SlowDown()) {
                     mGameStatus = State.Boss;
-                    bossAlive = true;
+                    //bossAlive = true;
                     boss = new Boss(GameplayCamera, EnemyMaterial);
+
                     mPlayerCharacter.Weapon.SetBulletTheme(Weapon.Theme.Bright);
                 }
+
+                //At this point, we know there are no enemies to check, so it is OK to skip the loop below
+                return;
             }
 
             // Update the position of each active enemy, keep a track of enemies which have gone off screen 
@@ -147,7 +151,7 @@ public class GameLogic : MonoBehaviour
 									break;
 								}
 							}*/
-                            if (mPlayerCharacter.Weapon.ActiveBullets[bullet].CheckHit(ThisPosition, BulletKillDistance))
+                            if (mPlayerCharacter.Weapon.ActiveBullets[bullet].CheckHit(ThisPosition, BulletKillDistance,false))
                             {
                                 EnemyFactory.Return(mActiveEnemies[count]);
                                 //oldEnemys.Add(mActiveEnemies[count]);
@@ -175,7 +179,7 @@ public class GameLogic : MonoBehaviour
 
         if (mGameStatus == State.Boss)
         {
-            if (bossAlive) {
+            if (boss!=null) {
 
                 //Move and rotate boss
                 boss.Update(mPlayerCharacter.transform.position);
@@ -209,11 +213,11 @@ public class GameLogic : MonoBehaviour
                             break;
                         }
                     }*/
-                    if (bullet.CheckHit(boss.Position(), BossHitDistance)) {
-                        if (boss.Hit(bullet.DamageValue))
-                        {
+                    if (bullet.CheckHit(boss.Position(), BossHitDistance, true)) {
+                        if (boss.Hit(bullet.DamageValue)) {
                             boss = null;
-                            bossAlive = false;
+                            //bossAlive = false;
+                            mPlayerCharacter.Weapon.SetBulletTheme(Weapon.Theme.Dark);
                         }
                         break;
                     }
@@ -231,7 +235,6 @@ public class GameLogic : MonoBehaviour
                     mGameStatus = State.Level;
                     mMissedEnemies = 0;
                     mLevelTimeLeft = DifficultyCurve.LevelDuration;
-                    mPlayerCharacter.Weapon.SetBulletTheme(Weapon.Theme.Dark);
                 }
             }
         }
@@ -242,8 +245,10 @@ public class GameLogic : MonoBehaviour
         for (int bullet = 0; bullet < mPlayerCharacter.Weapon.ActiveBullets.Count; bullet++) {
             mPlayerCharacter.Weapon.ActiveBullets[bullet].SetActive(false);
         }
-        if (boss != null)
+        if (boss != null) {
             boss.Destroy();
+            boss = null;
+        }
         mPlayerCharacter.Reset();
         mPlayerCharacter.Weapon.SetBulletTheme(Weapon.Theme.Dark);
         mCurrentDifficulty.Reset();

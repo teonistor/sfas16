@@ -1,6 +1,9 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+/* Star-shaped mesh for powerups
+To be done.
+ */
 public class CreateMesh2 : MonoBehaviour 
 {
 	[SerializeField] private Material Mat;

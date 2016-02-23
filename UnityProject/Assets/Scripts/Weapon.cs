@@ -4,46 +4,70 @@ using System.Collections.Generic;
 
 public class Weapon : MonoBehaviour 
 {
-	[SerializeField] private Material BulletMaterialNormal;
+    //Fields to be accessed (read-only) globally
+    public enum Theme { Dark, Bright };
+    public static Material[] BulletMaterials { get; private set; }
+    public static Color[] BulletColors { get; private set; }
+    public static float BulletScale { get; private set; }
+
+
+
+    //Fields to be set within Unity
+    //[SerializeField] private Color[] BulletColors;
+    [SerializeField] private Color[] NormalBulletColors;
+    /* In case Unity loses the state of this:
+       = new Color[] {new Color (0.099f, 0.094f, 0.132f), new Color (0.9f, 0.9f, 0.92f)};
+     */
+     
+    [SerializeField] private Material BulletMaterialNormal;
 	[SerializeField] private Material BulletMaterialGolden;
 	[SerializeField] private Material BulletMaterialIce;
 	[SerializeField] private Material BulletMaterialExplosive;
-	[SerializeField] private float BulletScale;
 	[SerializeField] private float RechargeTime;
+    [SerializeField] private float mBulletScale;
 
 	[Range( 1, 100 )] [SerializeField] private int BulletPoolSize;
 
-	private Bullet[] mPool;
+	//private Bullet[] mPool;
+    //For keeping track of the bullet pool
 	private List<Bullet> mActive;
 	private List<Bullet> mInactive;
+
+    //For allowing the gun to fire or not
 	private float mCharging;
 
-    private Color [] BulletNormalColors;
-    public enum Theme {Dark, Bright};
-    public static Material[] BulletMaterials { get; private set;}
+    //private Color [] NormalBulletColors;
 
 	public List<Bullet> ActiveBullets { get { return mActive; } }
 
 	void Awake() {
         //Put materials in array
         BulletMaterials = new Material[] { BulletMaterialNormal, BulletMaterialGolden, BulletMaterialIce, BulletMaterialExplosive };
-
-        //Create the 2 theme colors for the normal bullet
-        BulletNormalColors = new Color[] {
+        
+        //Put initial colors in array - to do
+        BulletColors = new Color[] {
+            new Color(BulletMaterialNormal.color.r,BulletMaterialNormal.color.g,BulletMaterialNormal.color.b),
+            new Color(BulletMaterialGolden.color.r,BulletMaterialGolden.color.g,BulletMaterialGolden.color.b),
+            new Color(BulletMaterialIce.color.r,BulletMaterialIce.color.g,BulletMaterialIce.color.b),
+            new Color(BulletMaterialExplosive.color.r,BulletMaterialExplosive.color.g,BulletMaterialExplosive.color.b,1f)
+        };
+        BulletScale = mBulletScale;
+        /*Create the 2 theme colors for the normal bullet
+        NormalBulletColors = new Color[] {
             new Color (0.099f, 0.094f, 0.132f),
             new Color (0.9f, 0.9f, 0.92f)
-        };
+        };*/
         
         // Create active and available lists, and an array of all bullets
 		mActive = new List<Bullet>();
 		mInactive = new List<Bullet>();
-		mPool = new Bullet[BulletPoolSize];
+		//mPool = new Bullet[BulletPoolSize];
 
         //Create bullets and add to lists
-        for (int count = 0; count < mPool.Length; count++)
+        for (int count = 0; count < BulletPoolSize; count++)
 		{
-            Bullet bullet = new Bullet (count,transform,BulletScale);
-            mPool[count] = bullet;
+            Bullet bullet = new Bullet (count,transform);
+            //mPool[count] = bullet;
 			mInactive.Add( bullet );
 		}
 		mCharging = 0.0f;
@@ -86,14 +110,14 @@ public class Weapon : MonoBehaviour
 		}
 	}
 
-	public bool Fire( Vector3 position )
+	public bool Fire( Vector3 position, Bullet.Type type )
 	{
 		// If the gun is not charging, fire the first bullet in the available list
 		if( mInactive.Count > 0 && mCharging <= 0.0f )
 		{
-			mInactive[0].Fire (Bullet.Type.Golden, position);
+			mInactive[0].Fire (type, position);
 			mActive.Add(mInactive[0]);
-			mInactive.Remove(mInactive[0]);
+			mInactive.RemoveAt(0);
 
             //Reset charging time
 			mCharging = RechargeTime;
@@ -105,6 +129,7 @@ public class Weapon : MonoBehaviour
     //Normal bullets can change color depending on the background color
     public void SetBulletTheme (Theme theme)
     {
-        BulletMaterialNormal.color = BulletNormalColors[(int)theme];
+        BulletColors[(int)Bullet.Type.Normal] = NormalBulletColors[(int)theme];
+        BulletMaterialNormal.color = BulletColors[(int)Bullet.Type.Normal];
     }
 }

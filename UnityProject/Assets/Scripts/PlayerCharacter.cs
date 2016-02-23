@@ -62,7 +62,7 @@ public class PlayerCharacter : MonoBehaviour
 		{
 			Vector3 position = transform.position;
 			position.y += FireOffset;
-			mGun.Fire( position );
+			mGun.Fire( position, Bullet.Type.Explosive );
 		}
 	}
 
