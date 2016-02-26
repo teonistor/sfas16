@@ -14,17 +14,20 @@ public class DifficultyCurve : MonoBehaviour
     [SerializeField] private float SpeedGain;
     [SerializeField] private float EnemySafeGap;
     [SerializeField] private float EnemyCheckGap;
+    [SerializeField] private float FreezeTime;
     [SerializeField] private Camera GameplayCamera;
 
     private float [] mTimeToDanger;
     private float NextGameSpeed;
     private float EnemyDensity;
+    private float DefrostTime;
 
     private Color LevelColor;
     private Color BossColor;
 
-    public static float GameSpeed { get; private set; }
-	public static float PlayerSpeed { get; private set; }
+    public static float EnemySpeed { get; private set; }
+    public static float ScenerySpeed { get; private set; }
+    public static float PlayerSpeed { get; private set; }
 	public static float BulletSpeed { get; private set; }
     public static float LevelDuration { get; private set; }
     public static int BossStrength { get; private set; }
@@ -66,11 +69,11 @@ public class DifficultyCurve : MonoBehaviour
     {
         GameplayCamera.backgroundColor = Color.Lerp(GameplayCamera.backgroundColor, BossColor, GameLogic.GameDeltaTime * 2f);
         if (NextGameSpeed == 0f) {
-            NextGameSpeed = GameSpeed * SpeedGain;
+            NextGameSpeed = EnemySpeed * SpeedGain;
         }
-        GameSpeed = Mathf.Lerp(GameSpeed, 0f, GameLogic.GameDeltaTime * 1.5f);
-        if (GameSpeed < 0.1f) {
-            GameSpeed = 0f;
+        EnemySpeed = ScenerySpeed = Mathf.Lerp(EnemySpeed, 0f, GameLogic.GameDeltaTime * 1.5f);
+        if (EnemySpeed < 0.1f) {
+            EnemySpeed = 0f;
             return true;
         }
         return false;
@@ -78,10 +81,11 @@ public class DifficultyCurve : MonoBehaviour
 
     public bool LevelUp()
     {
-        GameSpeed = Mathf.Lerp(GameSpeed, NextGameSpeed, GameLogic.GameDeltaTime * 1.5f);
+        EnemySpeed = Mathf.Lerp(EnemySpeed, NextGameSpeed, GameLogic.GameDeltaTime * 1.5f);
+        ScenerySpeed = EnemySpeed;
         GameplayCamera.backgroundColor = Color.Lerp(GameplayCamera.backgroundColor, LevelColor, GameLogic.GameDeltaTime * 2f);
-        if (Mathf.Abs (GameSpeed-NextGameSpeed) < 0.1f) {
-            GameSpeed = NextGameSpeed;
+        if (Mathf.Abs (EnemySpeed-NextGameSpeed) < 0.1f) {
+            EnemySpeed = ScenerySpeed = NextGameSpeed;
             NextGameSpeed = 0f;
             PlayerSpeed *= SpeedGain;
             BulletSpeed *= SpeedGain;
@@ -93,17 +97,36 @@ public class DifficultyCurve : MonoBehaviour
         return false;
     }
 
+    public void Freeze()
+    {
+        EnemySpeed = 0f;
+        //Some recycling
+        DefrostTime = -FreezeTime;
+    }
+
+    public bool Defrost()
+    {
+        DefrostTime += GameLogic.GameDeltaTime;
+        if (DefrostTime>0)
+            EnemySpeed = Mathf.Lerp(0f, ScenerySpeed, DefrostTime);
+        if (EnemySpeed >= ScenerySpeed)
+            return true;
+        return false;
+    }
+
 	public void GameOver()
 	{
-		GameSpeed = 0.0f;
-		PlayerSpeed = 0.0f;
+		EnemySpeed = 0.0f;
+        ScenerySpeed = 0.0f;
+        PlayerSpeed = 0.0f;
 		BulletSpeed = 0.0f;
 	}
 
 	public void Reset()
 	{
-		GameSpeed = GameStartSpeed;
-		PlayerSpeed = PlayerStartSpeed;
+		EnemySpeed = GameStartSpeed;
+        ScenerySpeed = GameStartSpeed;
+        PlayerSpeed = PlayerStartSpeed;
 		BulletSpeed = BulletStartSpeed;
         LevelDuration = LevelStartDuration;
         EnemyDensity = EnemyStartDensity;

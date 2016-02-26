@@ -56,13 +56,13 @@ public class PlayerCharacter : MonoBehaviour
 		Column = 1;
 	}
 
-	public void Fire()
+	public void Fire(Bullet.Type BulletType)
 	{
 		if( mGun != null )
 		{
 			Vector3 position = transform.position;
 			position.y += FireOffset;
-			mGun.Fire( position, Bullet.Type.Explosive );
+			mGun.Fire( position, BulletType);
 		}
 	}
 

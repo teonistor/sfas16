@@ -6,7 +6,8 @@ public class Boss {
     //[SerializeField] private Material BossMaterial;
     private float Size = 8f;
     private float activeWidth;
-    private Vector3 NextPosition;
+    private float MoveTime;
+    private Vector3 PrevPosition, NextPosition;
     private GameObject TheBoss;
     private int health;
 
@@ -17,8 +18,8 @@ public class Boss {
         health = DifficultyCurve.BossStrength;
         activeWidth = GameLogic.ScreenHeight * camera.aspect * 0.4f;
            // activeWidth = 10; //for now
-        NextPosition = new Vector3(0f, GameLogic.ScreenHeight * 0.5f, 0f);
-        TheBoss.transform.position = NextPosition;
+        /*PrevPosition =*/ NextPosition = new Vector3(0f, GameLogic.ScreenHeight * 0.5f, 0f);
+        TheBoss.transform.position = new Vector3(0f, GameLogic.ScreenHeight * 0.6f, 0f);
         TheBoss.transform.localScale = new Vector3(Size, Size, Size);
         TheBoss.transform.localRotation = Quaternion.AngleAxis(180.0f, Vector3.forward);
     }
@@ -26,9 +27,14 @@ public class Boss {
 	public void Update (Vector3 playerPos) {
         if (System.Math.Abs( TheBoss.transform.position.x - NextPosition.x) < 0.4f) {
             NextPosition = new Vector3(Random.Range(-1f, 1f) * activeWidth, NextPosition.y - 1.5f, 0f);
+            PrevPosition = TheBoss.transform.position;
+            MoveTime = 0;
         }
         else {
-            TheBoss.transform.position = Vector3.Lerp(TheBoss.transform.position, NextPosition, GameLogic.GameDeltaTime*2f);
+            //move
+            //TheBoss.transform.position = Vector3.Lerp(TheBoss.transform.position, NextPosition, GameLogic.GameDeltaTime*2f);
+            TheBoss.transform.position = Vector3.Lerp(PrevPosition, NextPosition, MoveTime);
+            MoveTime += GameLogic.GameDeltaTime * 0.75f;
             //rotate
             TheBoss.transform.localRotation = Quaternion.AngleAxis((float)(Mathf.Atan2(playerPos.y - TheBoss.transform.position.y, playerPos.x - TheBoss.transform.position.x) * 180 / System.Math.PI - 90), Vector3.forward);
         }

@@ -12,7 +12,7 @@ public class Bullet
     private CreateMesh mesh;
     private Transform ParentTransform;
     private Type mType;
-    private int[] mDamageValues = { 10, 20, 20, 20 };
+    private int[] mDamageValues = { 10, 20, 0, 25 };
 
 
     //These only applies to 'inflating' bullets
@@ -62,11 +62,11 @@ public class Bullet
                 Color color = bullet.GetComponent<CreateMesh>().Material.color;
 
                 Inflation += GameLogic.GameDeltaTime;
-                position.y += GameLogic.GameDeltaTime * GameLogic.BulletSpeed / InflationRate;
+                position.y += GameLogic.GameDeltaTime * GameLogic.BulletSpeed;
                 //scale *= GameLogic.GameDeltaTime * GameLogic.BulletSpeed * InflationRate;
-                scale = Vector3.Lerp(scale, new Vector3(1000f, 1000f, 1000f), Inflation);
+                scale = Vector3.Lerp(scale, new Vector3(GameLogic.ScreenHeight, GameLogic.ScreenHeight, GameLogic.ScreenHeight)*3f, Inflation);
                 color = Color.Lerp(color, Color.clear, Inflation);
-                Debug.Log(color); //Warning: Transparency does not get set!
+                //Debug.Log(color); //Warning: Transparency does not get set!
 
                 bullet.transform.position = position;
                 bullet.transform.localScale = scale;
@@ -89,6 +89,7 @@ public class Bullet
     public bool CheckHit(Vector3 EnemyPosition, float TouchingDistance, bool EnemyIsBoss) {
         if (bullet.activeInHierarchy) {
             float diffToBullet = TouchingDistance;
+            /*
             switch (mType) {
                 case Type.Normal:
                 case Type.Golden:
@@ -98,8 +99,15 @@ public class Bullet
                 case Type.Ice:
                     diffToBullet = (EnemyPosition - bullet.transform.position).sqrMagnitude - Inflation;
                     break;
-            }
-            
+            }*/
+
+            if (mType == Type.Explosive)
+                return true;
+
+            if (mType == Type.Ice)
+                return false;
+
+            diffToBullet = (EnemyPosition - bullet.transform.position).sqrMagnitude;
             if (diffToBullet < TouchingDistance)
             {
                 if (mType == Type.Normal || (mType == Type.Golden && EnemyIsBoss)) {

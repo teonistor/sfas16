@@ -23,17 +23,19 @@ public class GameLogic : MonoBehaviour
     private float mGameOverTime;
     private float mLevelTimeLeft;
     private float mDistanceTravelled;
+    private bool GameFrozen;
 	private int mMissedEnemies;
 	private State mGameStatus;
 
     private List<GameObject> mActiveEnemies { get {return EnemyFactory.GetActiveEnemies(); } }
-
+    private int[] Inventory;
 
     public static float GameDeltaTime { get; private set; }
-	public static float GameSpeed { get { return DifficultyCurve.GameSpeed; } }
+	public static float EnemySpeed { get { return DifficultyCurve.EnemySpeed; } }
 	public static float PlayerSpeed { get { return DifficultyCurve.PlayerSpeed; } }
 	public static float BulletSpeed { get { return DifficultyCurve.BulletSpeed; } }
-	public static float ScreenBounds { get; private set; }
+    public static float ScenerySpeed { get { return DifficultyCurve.ScenerySpeed; } }
+    public static float ScreenBounds { get; private set; }
 	public static float ScreenHeight { get; private set; }
 	public static bool Paused { get; private set; }
 
@@ -53,6 +55,10 @@ public class GameLogic : MonoBehaviour
 		mGameStatus = State.TapToStart;
         mGameOverTime = Time.timeSinceLevelLoad;
 		mMissedEnemies = 0;
+        //TODO: Fix initial inv
+        //TODO: Display inf
+        Inventory = new int[] { 0, 10, 10, 10 };
+        GameFrozen = false;
         Paused = false;
 	}
 
@@ -69,11 +75,17 @@ public class GameLogic : MonoBehaviour
 
         if ( mGameStatus == State.Level )
 		{
-			mDistanceTravelled += GameSpeed * GameDeltaTime;
+			mDistanceTravelled += ScenerySpeed * GameDeltaTime;
 			GameText.text = string.Format( "Distance: {0:0.0} m", mDistanceTravelled );
 
             mLevelTimeLeft -= GameDeltaTime;
-            if (mLevelTimeLeft > 0f) {
+
+            if (GameFrozen) {
+                if (mCurrentDifficulty.Defrost()) {
+                    GameFrozen = false;
+                }
+            }
+            else if (mLevelTimeLeft > 0f) {
                 int enemies = mCurrentDifficulty.SpawnPattern();
                 for (int ColumnCount = 0; ColumnCount < 3; ColumnCount++)
                 {
@@ -113,7 +125,7 @@ public class GameLogic : MonoBehaviour
 				Vector3 ThisPosition = mActiveEnemies[count].transform.position;
 
                 //Update each enemy's position according to the game speed
-				ThisPosition.y -= GameDeltaTime * GameSpeed;
+				ThisPosition.y -= GameDeltaTime * EnemySpeed;
 				mActiveEnemies[count].transform.position = ThisPosition;
 
                 //Check if the enemy has flown off screen. If so, return it to the factory and count it as missed.
@@ -179,7 +191,7 @@ public class GameLogic : MonoBehaviour
 
         if (mGameStatus == State.Boss)
         {
-            if (boss!=null) {
+            if (!(boss==null || GameFrozen)) {
 
                 //Move and rotate boss
                 boss.Update(mPlayerCharacter.transform.position);
@@ -226,16 +238,43 @@ public class GameLogic : MonoBehaviour
             }
             else {
                 //No more boss, transitioning to normal
-                mDistanceTravelled += GameSpeed * GameDeltaTime;
+                mDistanceTravelled += ScenerySpeed * GameDeltaTime;
                 GameText.text = string.Format("Distance: {0:0.0} m", mDistanceTravelled);
 
-                PowerupFactory.DetectCollisions(mPlayerCharacter.transform.position);
+                int CollectedPowerup = PowerupFactory.DetectCollisions(mPlayerCharacter.transform.position);
+                if (CollectedPowerup >= 0) {
+                    Inventory[CollectedPowerup]++;
+                }
 
                 if (mCurrentDifficulty.LevelUp()) {
                     mGameStatus = State.Level;
                     mMissedEnemies = 0;
                     mLevelTimeLeft = DifficultyCurve.LevelDuration;
                 }
+            }
+        }
+    }
+
+    private void Fire (/*Bullet.Type BulletType, bool permissive*/)
+    {
+        //Until we fix the input
+        bool permissive = true;
+        Bullet.Type BulletType = Bullet.Type.Explosive;
+
+        if (BulletType == Bullet.Type.Normal) {
+            mPlayerCharacter.Fire(BulletType);
+        }
+        else {
+            if (Inventory[(int)BulletType] > 0) {
+                Inventory[(int)BulletType]--;
+                mPlayerCharacter.Fire(BulletType);
+                if (BulletType == Bullet.Type.Ice) {
+                    GameFrozen = true;
+                    mCurrentDifficulty.Freeze();
+                }
+            }
+            else if (permissive) {
+                mPlayerCharacter.Fire(Bullet.Type.Normal);
             }
         }
     }
@@ -258,6 +297,8 @@ public class GameLogic : MonoBehaviour
 		mMissedEnemies = 0;
 		mDistanceTravelled = 0.0f;
         mLevelTimeLeft = DifficultyCurve.LevelDuration;
+        Inventory = new int[] { 0, 0, 0, 0 };
+        GameFrozen = false;
     }
 
 	private void HandleOnTap( Vector3 position )
@@ -270,7 +311,7 @@ public class GameLogic : MonoBehaviour
 			break;
         case State.Level:
         case State.Boss:
-                mPlayerCharacter.Fire();
+                Fire();
 			break;
 		case State.GameOver:
             if (Time.timeSinceLevelLoad - mGameOverTime > WaitTime)
@@ -323,7 +364,7 @@ public class GameLogic : MonoBehaviour
                         break;
                     case GameInput.Direction.Up:
                     case GameInput.Direction.Through:
-                        mPlayerCharacter.Fire();
+                        Fire();
                         break;
                 }
                 break;
