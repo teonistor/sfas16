@@ -28,7 +28,6 @@ public class GameLogic : MonoBehaviour
 	private State mGameStatus;
 
     private List<GameObject> mActiveEnemies { get {return EnemyFactory.GetActiveEnemies(); } }
-    private int[] Inventory;
 
     public static float GameDeltaTime { get; private set; }
 	public static float EnemySpeed { get { return DifficultyCurve.EnemySpeed; } }
@@ -57,7 +56,7 @@ public class GameLogic : MonoBehaviour
 		mMissedEnemies = 0;
         //TODO: Fix initial inv
         //TODO: Display inf
-        Inventory = new int[] { 0, 10, 10, 10 };
+        //Inventory = new int[] { 0, 10, 10, 10 };
         GameFrozen = false;
         Paused = false;
 	}
@@ -196,17 +195,13 @@ public class GameLogic : MonoBehaviour
                 //Move and rotate boss
                 boss.Update(mPlayerCharacter.transform.position);
 
-                //Check doom height
-                if (boss.Position().y < ScreenHeight * -0.25f)
+                //Check if boss has eaten the player and if so end the game
+                if (boss.HasEaten(mPlayerCharacter.transform.position))
                 {
-                    //Perform game over sh%t
                     mCurrentDifficulty.GameOver();
                     mGameOverTime = Time.timeSinceLevelLoad;
-                    if (boss.Invade(mPlayerCharacter.transform.position))
-                    {
-                        mGameStatus = State.GameOver;
-                        GameText.text = string.Format("You have been eaten!\nTotal distance: {0:0.0} m", mDistanceTravelled);
-                    }
+                    mGameStatus = State.GameOver;
+                    GameText.text = string.Format("You have been eaten!\nTotal distance: {0:0.0} m", mDistanceTravelled);
                 }
 
                 //Check bullets
@@ -241,10 +236,10 @@ public class GameLogic : MonoBehaviour
                 mDistanceTravelled += ScenerySpeed * GameDeltaTime;
                 GameText.text = string.Format("Distance: {0:0.0} m", mDistanceTravelled);
 
-                int CollectedPowerup = PowerupFactory.DetectCollisions(mPlayerCharacter.transform.position);
+                /*int CollectedPowerup = PowerupFactory.DetectCollisions(mPlayerCharacter.transform.position);
                 if (CollectedPowerup >= 0) {
                     Inventory[CollectedPowerup]++;
-                }
+                }*/
 
                 if (mCurrentDifficulty.LevelUp()) {
                     mGameStatus = State.Level;
@@ -261,6 +256,13 @@ public class GameLogic : MonoBehaviour
         bool permissive = true;
         Bullet.Type BulletType = Bullet.Type.Explosive;
 
+        int ShotBullet = mPlayerCharacter.Fire(BulletType, permissive);
+
+        if (ShotBullet == (int)Bullet.Type.Ice) {
+            GameFrozen = true;
+            mCurrentDifficulty.Freeze();
+        }
+        /*
         if (BulletType == Bullet.Type.Normal) {
             mPlayerCharacter.Fire(BulletType);
         }
@@ -276,7 +278,7 @@ public class GameLogic : MonoBehaviour
             else if (permissive) {
                 mPlayerCharacter.Fire(Bullet.Type.Normal);
             }
-        }
+        }*/
     }
 
 	private void Reset()
@@ -297,7 +299,7 @@ public class GameLogic : MonoBehaviour
 		mMissedEnemies = 0;
 		mDistanceTravelled = 0.0f;
         mLevelTimeLeft = DifficultyCurve.LevelDuration;
-        Inventory = new int[] { 0, 0, 0, 0 };
+        //Inventory = new int[] { 0, 0, 0, 0 };
         GameFrozen = false;
     }
 

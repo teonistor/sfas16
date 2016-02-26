@@ -121,6 +121,9 @@ public class Weapon : MonoBehaviour
 
             //Reset charging time
 			mCharging = RechargeTime;
+
+            //Confirm that bullet has been shot
+            return true;
 		}
         
 		return false;

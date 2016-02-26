@@ -73,7 +73,7 @@ public class DifficultyCurve : MonoBehaviour
         }
         EnemySpeed = ScenerySpeed = Mathf.Lerp(EnemySpeed, 0f, GameLogic.GameDeltaTime * 1.5f);
         if (EnemySpeed < 0.1f) {
-            EnemySpeed = 0f;
+            EnemySpeed = ScenerySpeed = 0f;
             return true;
         }
         return false;
