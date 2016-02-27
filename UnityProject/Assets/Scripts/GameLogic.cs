@@ -6,9 +6,9 @@ public class GameLogic : MonoBehaviour
 {
 	[SerializeField] private TextMesh GameText;
 	[SerializeField] private Camera GameplayCamera;
-	[SerializeField] private Material EnemyMaterial; 
-	[SerializeField] private float PlayerKillDistance;  
-	[SerializeField] private float BulletKillDistance; 
+	[SerializeField] private Material EnemyMaterial;
+	[SerializeField] private float PlayerKillDistance;
+	[SerializeField] private float BulletKillDistance;
 	[SerializeField] private float BossHitDistance;
     [SerializeField] private float WaitTime;
 	[SerializeField] private int MaxMissedEnemies;
@@ -71,6 +71,12 @@ public class GameLogic : MonoBehaviour
 	{
 		GameDeltaTime = Paused ? 0.0f : Time.deltaTime;
         //List<GameObject> mActiveEnemies = new List<GameObject> ( EnemyFactory.GetActiveEnemies());
+        
+        if (GameFrozen) {
+            if (mCurrentDifficulty.Defrost()) {
+                GameFrozen = false;
+            }
+        }
 
         if ( mGameStatus == State.Level )
 		{
@@ -79,12 +85,7 @@ public class GameLogic : MonoBehaviour
 
             mLevelTimeLeft -= GameDeltaTime;
 
-            if (GameFrozen) {
-                if (mCurrentDifficulty.Defrost()) {
-                    GameFrozen = false;
-                }
-            }
-            else if (mLevelTimeLeft > 0f) {
+            if (!GameFrozen && mLevelTimeLeft > 0f) {
                 int enemies = mCurrentDifficulty.SpawnPattern();
                 for (int ColumnCount = 0; ColumnCount < 3; ColumnCount++)
                 {
@@ -106,7 +107,7 @@ public class GameLogic : MonoBehaviour
                     //bossAlive = true;
                     boss = new Boss(GameplayCamera, EnemyMaterial);
 
-                    mPlayerCharacter.Weapon.SetBulletTheme(Weapon.Theme.Bright);
+                    //mPlayerCharacter.Weapon.SetBulletTheme(Weapon.Theme.Bright);
                 }
 
                 //At this point, we know there are no enemies to check, so it is OK to skip the loop below
@@ -190,18 +191,21 @@ public class GameLogic : MonoBehaviour
 
         if (mGameStatus == State.Boss)
         {
-            if (!(boss==null || GameFrozen)) {
+            if (boss!=null) {
 
-                //Move and rotate boss
-                boss.Update(mPlayerCharacter.transform.position);
+                //Only if the boss is allowed to move
+                if (!GameFrozen) {
 
-                //Check if boss has eaten the player and if so end the game
-                if (boss.HasEaten(mPlayerCharacter.transform.position))
-                {
-                    mCurrentDifficulty.GameOver();
-                    mGameOverTime = Time.timeSinceLevelLoad;
-                    mGameStatus = State.GameOver;
-                    GameText.text = string.Format("You have been eaten!\nTotal distance: {0:0.0} m", mDistanceTravelled);
+                    //Move and rotate boss
+                    boss.Update(mPlayerCharacter.transform.position);
+
+                    //Check if boss has eaten the player and if so end the game
+                    if (boss.HasEaten(mPlayerCharacter.transform.position)) {
+                        mCurrentDifficulty.GameOver();
+                        mGameOverTime = Time.timeSinceLevelLoad;
+                        mGameStatus = State.GameOver;
+                        GameText.text = string.Format("You have been eaten!\nTotal distance: {0:0.0} m", mDistanceTravelled);
+                    }
                 }
 
                 //Check bullets
@@ -224,7 +228,7 @@ public class GameLogic : MonoBehaviour
                         if (boss.Hit(bullet.DamageValue)) {
                             boss = null;
                             //bossAlive = false;
-                            mPlayerCharacter.Weapon.SetBulletTheme(Weapon.Theme.Dark);
+                            //mPlayerCharacter.Weapon.SetBulletTheme(Weapon.Theme.Dark);
                         }
                         break;
                     }
@@ -250,13 +254,13 @@ public class GameLogic : MonoBehaviour
         }
     }
 
-    private void Fire (/*Bullet.Type BulletType, bool permissive*/)
+    private void Fire (Bullet.Type BulletType/*, bool permissive*/)
     {
         //Until we fix the input
         bool permissive = true;
-        Bullet.Type BulletType = Bullet.Type.Explosive;
+        //Bullet.Type BulletType = Bullet.Type.Normal;
 
-        int ShotBullet = mPlayerCharacter.Fire(BulletType, permissive);
+        int ShotBullet = mPlayerCharacter.Fire(BulletType);
 
         if (ShotBullet == (int)Bullet.Type.Ice) {
             GameFrozen = true;
@@ -291,7 +295,7 @@ public class GameLogic : MonoBehaviour
             boss = null;
         }
         mPlayerCharacter.Reset();
-        mPlayerCharacter.Weapon.SetBulletTheme(Weapon.Theme.Dark);
+        //mPlayerCharacter.Weapon.SetBulletTheme(Weapon.Theme.Dark);
         mCurrentDifficulty.Reset();
 		EnemyFactory.Reset();
         PowerupFactory.Reset();
@@ -313,7 +317,7 @@ public class GameLogic : MonoBehaviour
 			break;
         case State.Level:
         case State.Boss:
-                Fire();
+                Fire((Bullet.Type)(1+DisplayInventory.ButtonAt(new Vector2(position.x,position.y))));
 			break;
 		case State.GameOver:
             if (Time.timeSinceLevelLoad - mGameOverTime > WaitTime)
@@ -343,12 +347,12 @@ public class GameLogic : MonoBehaviour
 		}
 	}
 
-    private void HandleKeyPress (GameInput.Direction direction)
+    private void HandleKeyPress (GameInput.Key key)
     {
         switch (mGameStatus)
         {
             case State.TapToStart:
-                if (direction == GameInput.Direction.Up || direction == GameInput.Direction.Through)
+                if (key == GameInput.Key.Fire)
                 {
                     Paused = false;
                     mGameStatus = State.Level;
@@ -356,24 +360,30 @@ public class GameLogic : MonoBehaviour
                 break;
             case State.Level:
             case State.Boss:
-                switch (direction)
+                switch (key)
                 {
-                    case GameInput.Direction.Left:
+                    case GameInput.Key.Left:
                         mPlayerCharacter.MoveLeft();
                         break;
-                    case GameInput.Direction.Right:
+                    case GameInput.Key.Right:
                         mPlayerCharacter.MoveRight();
                         break;
-                    case GameInput.Direction.Up:
-                    case GameInput.Direction.Through:
-                        Fire();
+                    case GameInput.Key.Fire:
+                        Fire(Bullet.Type.Normal);
+                        break;
+                    case GameInput.Key.Fire1:
+                        Fire(Bullet.Type.Explosive);
+                        break;
+                    case GameInput.Key.Fire2:
+                        Fire(Bullet.Type.Ice);
+                        break;
+                    case GameInput.Key.Fire3:
+                        Fire(Bullet.Type.Golden);
                         break;
                 }
                 break;
             case State.GameOver:
-                if (Time.timeSinceLevelLoad - mGameOverTime > WaitTime && 
-                    (direction == GameInput.Direction.Up || direction == GameInput.Direction.Through))
-                {
+                if (Time.timeSinceLevelLoad - mGameOverTime > WaitTime && key == GameInput.Key.Fire) {
                     Reset();
                     GameText.text = "Tap to start";
                     mGameStatus = State.TapToStart;

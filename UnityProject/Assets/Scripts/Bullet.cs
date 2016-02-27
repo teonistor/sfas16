@@ -31,16 +31,17 @@ public class Bullet
 
     public void Fire (Type BulletType, Vector3 InitialPosition){
         mType = BulletType;
-        bullet.SetActive(true);
         mesh.Material = Weapon.BulletMaterials[(int)mType];
         bullet.transform.parent = null;
         bullet.transform.position = InitialPosition;
         Inflation = 0f;
+        bullet.SetActive(true);
     }
 	
 	// Returns true if the bullet has flown off the screen
 	public bool Update () {
         Vector3 position;
+
         //In principle, there are 2 types of bullets: those that fly and those that inflate
         switch (mType) {
             case Type.Normal:
@@ -88,7 +89,7 @@ public class Bullet
     //Returns true if the bullet is active and has hit the enemy
     public bool CheckHit(Vector3 EnemyPosition, float TouchingDistance, bool EnemyIsBoss) {
         if (bullet.activeInHierarchy) {
-            float diffToBullet = TouchingDistance;
+            float diffToBullet;
             /*
             switch (mType) {
                 case Type.Normal:
@@ -101,7 +102,7 @@ public class Bullet
                     break;
             }*/
 
-            if (mType == Type.Explosive)
+            if (mType == Type.Explosive && bullet.GetComponent<CreateMesh>().Material.color.a<0.5f)
                 return true;
 
             if (mType == Type.Ice)

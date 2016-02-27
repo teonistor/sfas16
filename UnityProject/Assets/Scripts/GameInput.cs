@@ -1,13 +1,14 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class GameInput : MonoBehaviour 
-{
-	public enum Direction { Up, Down, Left, Right, Through };
-	
-	public delegate void OnTapCallback( Vector3 position );
+public class GameInput : MonoBehaviour {
+
+    public enum Direction { Up, Down, Left, Right};
+    public enum Key { Left, Right, Fire, Fire1, Fire2, Fire3 };
+
+    public delegate void OnTapCallback( Vector3 position );
     public delegate void OnSwipeCallback(Direction direction);
-    public delegate void OnKeyPressCallback(Direction direction);
+    public delegate void OnKeyPressCallback(Key key);
 
     public static event OnTapCallback OnTap;
     public static event OnSwipeCallback OnSwipe;
@@ -137,10 +138,12 @@ public class GameInput : MonoBehaviour
 		}
 
         //For keyboard input
-        if (Input.GetButton("Left")) OnKeyPress(Direction.Left);
-        if (Input.GetButton("Right")) OnKeyPress(Direction.Right);
-        if (Input.GetButton("Up")) OnKeyPress(Direction.Up);
-        if (Input.GetButton("Jump")) OnKeyPress(Direction.Through);
+        if (Input.GetButton("Left")) OnKeyPress(Key.Left);
+        if (Input.GetButton("Right")) OnKeyPress(Key.Right);
+        if (Input.GetButton("Fire")) OnKeyPress(Key.Fire);
+        if (Input.GetButton("Fire1")) OnKeyPress(Key.Fire1);
+        if (Input.GetButton("Fire2")) OnKeyPress(Key.Fire2);
+        if (Input.GetButton("Fire3")) OnKeyPress(Key.Fire3);
     }
 
 	private bool MouseButtonJustPressed( MouseButtons button )

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 public class Weapon : MonoBehaviour 
 {
     //Fields to be accessed (read-only) globally
-    public enum Theme { Dark, Bright };
+    //public enum Theme { Dark, Bright };
     public static Material[] BulletMaterials { get; private set; }
     public static Color[] BulletColors { get; private set; }
     public static float BulletScale { get; private set; }
@@ -14,7 +14,7 @@ public class Weapon : MonoBehaviour
 
     //Fields to be set within Unity
     //[SerializeField] private Color[] BulletColors;
-    [SerializeField] private Color[] NormalBulletColors;
+    //[SerializeField] private Color[] NormalBulletColors;
     /* In case Unity loses the state of this:
        = new Color[] {new Color (0.099f, 0.094f, 0.132f), new Color (0.9f, 0.9f, 0.92f)};
      */
@@ -49,7 +49,7 @@ public class Weapon : MonoBehaviour
             new Color(BulletMaterialNormal.color.r,BulletMaterialNormal.color.g,BulletMaterialNormal.color.b),
             new Color(BulletMaterialGolden.color.r,BulletMaterialGolden.color.g,BulletMaterialGolden.color.b),
             new Color(BulletMaterialIce.color.r,BulletMaterialIce.color.g,BulletMaterialIce.color.b),
-            new Color(BulletMaterialExplosive.color.r,BulletMaterialExplosive.color.g,BulletMaterialExplosive.color.b,1f)
+            new Color(BulletMaterialExplosive.color.r,BulletMaterialExplosive.color.g,BulletMaterialExplosive.color.b)
         };
         BulletScale = mBulletScale;
         /*Create the 2 theme colors for the normal bullet
@@ -129,10 +129,10 @@ public class Weapon : MonoBehaviour
 		return false;
 	}
 
-    //Normal bullets can change color depending on the background color
+    /*Normal bullets can change color depending on the background color
     public void SetBulletTheme (Theme theme)
     {
         BulletColors[(int)Bullet.Type.Normal] = NormalBulletColors[(int)theme];
         BulletMaterialNormal.color = BulletColors[(int)Bullet.Type.Normal];
-    }
+    }*/
 }

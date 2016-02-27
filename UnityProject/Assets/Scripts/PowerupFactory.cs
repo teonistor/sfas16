@@ -13,24 +13,24 @@ public class PowerupFactory : MonoBehaviour {
     [SerializeField] private Material IceMaterial;
     [SerializeField] private Material ExplosiveMaterial;
 
-    public enum Type { Golden, Ice, Explosive}
+    public enum Type { Golden, Ice, Explosive, NoPowerups}
 
-    public static PowerupFactory mInstance { get; private set;}
+    public static PowerupFactory mInstance { get; private set; }
+    public Material[] mMaterials { get; private set; }
     private List<GameObject> mActive;
     private List<GameObject> mInactive;
-    private Material[] mMaterials;
     private Quaternion RotationVector;
     private List<ExplosionItem> ExplosionItems;
-    private const int MaterialCount = 3;
+    //private const int MaterialCount = 3;
 
     void Awake () {
         if (mInstance == null)
         {
             mInstance = this;
-            mMaterials = new Material[MaterialCount];
-            mMaterials[0] = GoldenMaterial;
-            mMaterials[1] = IceMaterial;
-            mMaterials[2] = ExplosiveMaterial;
+            mMaterials = new Material[(int)Type.NoPowerups];
+            mMaterials[(int)Type.Golden] = GoldenMaterial;
+            mMaterials[(int)Type.Ice] = IceMaterial;
+            mMaterials[(int)Type.Explosive] = ExplosiveMaterial;
 
             RotationVector = Quaternion.AngleAxis(RotationAmount, Vector3.forward);
             ExplosionItems = new List<ExplosionItem>();
@@ -72,14 +72,13 @@ public class PowerupFactory : MonoBehaviour {
     }
 
     private int DetectCollisionsOnInstance(Vector3 PlayerPosition) {
-        //code
         foreach (GameObject ThisPowerup in mActive) {
             if (ThisPowerup.activeInHierarchy) {
                 Vector3 distance = PlayerPosition - ThisPowerup.transform.position;
                 if (distance.sqrMagnitude < CollectionDistance) {
                     Material material = ThisPowerup.GetComponent<CreateMesh2>().Material;
                     ThisPowerup.SetActive(false);
-                    for (int i= 0;i<MaterialCount; i++) {
+                    for (int i= 0;i<(int)Type.NoPowerups; i++) {
                         if (material == mMaterials[i]) return i;
                     }
                 }

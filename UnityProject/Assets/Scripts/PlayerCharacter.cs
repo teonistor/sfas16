@@ -13,13 +13,18 @@ public class PlayerCharacter : MonoBehaviour
     private float mMovementTime;
     private float mColumnSize;
 	private float mStartY;
-    private int[] Inventory;
+    private int[] Inventory /*{ get; private set; }*/;
 
     //How much movement of the column width can be left when we consider a new movement in the same direction
     private const float ColumnSafety = 0.3f;
 
 	public Weapon Weapon { get { return mGun; } }
 	public int Column { get; private set; }
+
+    /*
+    void Awake() {
+        
+    }*/
 
 	void Start() 
 	{
@@ -41,8 +46,11 @@ public class PlayerCharacter : MonoBehaviour
 		// Look for the gun
 		mGun = GetComponentInChildren<Weapon>();
 
-		//Column = 1;
-	}
+        //Column = 1;
+
+        //Allow inventory display script to access Inventory array
+        DisplayInventory.GetInventoryDelegate += GetInventory;
+    }
 
 	void Update()
 	{
@@ -69,28 +77,53 @@ public class PlayerCharacter : MonoBehaviour
         //Vector3 position = new Vector3( 0.0f, mStartY, 0.0f );
         transform.position = new Vector3(0f, mStartY, 0f);
 		mTargetPosition = 0.0f;
-        Inventory = new int[] { 0, 0, 0, 0 };
+        //Inventory = new int[(int)PowerupFactory.Type.NoPowerups];
+        Inventory = new int[] { 0, 12, 3 };
 
 		Column = 1;
 	}
 
-	public int Fire (Bullet.Type BulletType, bool permissive)
+	public int Fire (Bullet.Type BulletType/*, bool permissive*/)
 	{
 		if( mGun != null )
 		{
-            //Decision
+            /*Decision
             if (BulletType!=Bullet.Type.Normal && Inventory[(int)BulletType] > 0) {
                 Inventory[(int)BulletType]--;
             }
             else if (BulletType != Bullet.Type.Normal && permissive) {
-                BulletType = Bullet.Type.Normal;
+                //BulletType = Bullet.Type.Normal;
             }
-            else return -1;
+            else if (!permissive)
+                return -1;*/
+
+            //Decision
+            //Inventory is based on the Powerups enum, which is incompatible with the Bullet enum
+            //A math expression could be used, but it would be difficult to understand and would break if anything changed about either of the 2 objects
+            int invIndex = -1;
+            switch (BulletType) {
+                case Bullet.Type.Ice:
+                    invIndex = (int)PowerupFactory.Type.Ice;
+                    break;
+                case Bullet.Type.Golden:
+                    invIndex = (int)PowerupFactory.Type.Golden;
+                    break;
+                case Bullet.Type.Explosive:
+                    invIndex = (int)PowerupFactory.Type.Explosive;
+                    break;
+            }
+
+            //If a bullet that exists in finite supply has been chosen, check there is enough of it
+            if (invIndex >= 0 && Inventory[invIndex] <= 0)
+                return -1;
             
             //Action
             Vector3 position = transform.position;
 			position.y += FireOffset;
-			mGun.Fire( position, BulletType);
+
+            //Only decrease inventory if the bullet was actually fired
+            if (mGun.Fire(position, BulletType) && invIndex >= 0)
+                Inventory[invIndex]--;
             return (int)BulletType;
 		}
         return -1;
@@ -118,4 +151,8 @@ public class PlayerCharacter : MonoBehaviour
 
         }
 	}
+
+    private int[] GetInventory() {
+        return Inventory;
+    }
 }

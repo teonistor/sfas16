@@ -49,21 +49,35 @@ public class CreateMesh : MonoBehaviour
         return uv;
     }
 
+    private Vector4[] GetTans() {
+        Vector4[] tan = new Vector4[7];
+
+        tan[0] = new Vector4(0f, 1f, 0f, 1f);
+        tan[1] = new Vector4(0f, 1f, 0f, 1f);
+        tan[2] = new Vector4(0f, 1f, 0f, 1f);
+        tan[3] = new Vector4(0f, 1f, 0f, 1f);
+        tan[4] = new Vector4(0f, 1f, 0f, 1f);
+        tan[5] = new Vector4(0f, 1f, 0f, 1f);
+        tan[6] = new Vector4(0f, 1f, 0f, 1f);
+
+        return tan;
+    }
+
     private int [] GetTriangles()
 	{
-		int [] starTriangles = new int[9];
+		int [] triangles = new int[9];
 		
-		starTriangles[0] = 0;
-		starTriangles[1] = 2;
-		starTriangles[2] = 1;
-		starTriangles[3] = 3;
-		starTriangles[4] = 4;
-		starTriangles[5] = 5;
-		starTriangles[6] = 4;
-		starTriangles[7] = 6;
-		starTriangles[8] = 5;
+		triangles[0] = 0;
+		triangles[1] = 2;
+		triangles[2] = 1;
+		triangles[3] = 3;
+		triangles[4] = 4;
+		triangles[5] = 5;
+		triangles[6] = 4;
+		triangles[7] = 6;
+		triangles[8] = 5;
 
-		return starTriangles;
+		return triangles;
 	}
 	
 	private Mesh DoCreateMesh()
@@ -74,6 +88,7 @@ public class CreateMesh : MonoBehaviour
 		m.triangles = GetTriangles();
         m.uv = GetUVs();
         m.RecalculateNormals();
+        m.tangents = GetTans();
 		
 		return m;
 	}
@@ -85,4 +100,8 @@ public class CreateMesh : MonoBehaviour
 		mMesh.mesh = DoCreateMesh();
 		mMeshRenderer.material = Mat;
 	}
+
+    void Update() {
+        mMeshRenderer.material = Mat;
+    }
 }
