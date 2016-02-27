@@ -16,7 +16,9 @@ public class DisplayInventory : MonoBehaviour {
     private Vector3[] ButtonPositions;
     private GameObject[] Buttons;
     private Vector2 ScreenCorner;
-    //private Material[] Materials;
+    private bool ScreenHorizontal;
+    private float ButtonSizeInPixels;
+    private Vector2 ScreenCornerInPixels;
 
     //Through delegate, PlayerCharacter will allow this class to acces Inventory array
     public delegate int[] GetInventory();
@@ -38,6 +40,10 @@ public class DisplayInventory : MonoBehaviour {
         float x = y * GameplayCamera.aspect;
         ScreenCorner = new Vector2(x, y);
 
+        //Work out some pixel sizes which will be needed when user taps on the inventory
+        ScreenCornerInPixels = new Vector2(Screen.width, Screen.height);
+        ButtonSizeInPixels = ScreenCornerInPixels.y * (ButtonSize + ButtonGap) / GameLogic.ScreenHeight;
+
         //Work out centre of cornermost button
         x -= ButtonGap + ButtonSize * 0.5f;
         y -= ButtonGap + ButtonSize * 0.5f;
@@ -48,6 +54,7 @@ public class DisplayInventory : MonoBehaviour {
 
         if (GameplayCamera.aspect < 1)
         { //Tall screen, place buttons vertically
+            ScreenHorizontal = false;
             for (int i = 1; i < (int)PowerupFactory.Type.NoPowerups; i++) {
                 y -= ButtonGap + ButtonSize;
                 ButtonPositions[i] = new Vector3(x, y, ZLayer);
@@ -55,6 +62,7 @@ public class DisplayInventory : MonoBehaviour {
         }
         else
         { //Wide screen, place buttons horizontally
+            ScreenHorizontal = true;
             for (int i = 1; i < (int)PowerupFactory.Type.NoPowerups; i++) {
                 x -= ButtonGap + ButtonSize;
                 ButtonPositions[i] = new Vector3(x, y, ZLayer);
@@ -110,7 +118,22 @@ public class DisplayInventory : MonoBehaviour {
     }
 
     private int ButtonAtOnInstance (Vector2 position) {
-        //code
+
+        //print(position);
+        int narrow, wide;
+        position = (ScreenCornerInPixels - position)/ButtonSizeInPixels;
+        if (ScreenHorizontal) {
+            narrow = (int)(position.y);
+            wide = (int)(position.x);
+        }
+        else {
+            narrow = (int)(position.x);
+            wide = (int)(position.y);
+        }
+        print("" + narrow + "  " + wide);
+        if (narrow==0 && wide>=0 && wide<(int)PowerupFactory.Type.NoPowerups && Buttons[wide].activeInHierarchy) {
+            return wide;
+        }
         return -1;
     }
 }

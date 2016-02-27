@@ -23,7 +23,7 @@ public class DifficultyCurve : MonoBehaviour
     private float DefrostTime;
 
     private Color LevelColor;
-    private Color BossColor;
+    private Color BossTimeColor;
 
     public static float EnemySpeed { get; private set; }
     public static float ScenerySpeed { get; private set; }
@@ -31,11 +31,13 @@ public class DifficultyCurve : MonoBehaviour
 	public static float BulletSpeed { get; private set; }
     public static float LevelDuration { get; private set; }
     public static int BossStrength { get; private set; }
+    public bool GameFrozen { get; private set; }
+    public int SlowDownStage { get; private set; }
 
     void Awake()
 	{
         LevelColor = new Color(0.262f, 0.236f, 0.574f);
-        BossColor = Color.black;
+        BossTimeColor = Color.black;
 
         Reset();
 
@@ -65,28 +67,21 @@ public class DifficultyCurve : MonoBehaviour
         return pattern;
     }
 
-    public bool SlowDown()
-    {
-        GameplayCamera.backgroundColor = Color.Lerp(GameplayCamera.backgroundColor, BossColor, GameLogic.GameDeltaTime * 2f);
-        if (NextGameSpeed == 0f) {
-            NextGameSpeed = EnemySpeed * SpeedGain;
-        }
-        EnemySpeed = ScenerySpeed = Mathf.Lerp(EnemySpeed, 0f, GameLogic.GameDeltaTime * 1.5f);
-        if (EnemySpeed < 0.1f) {
-            EnemySpeed = ScenerySpeed = 0f;
-            return true;
-        }
-        return false;
+    public void SlowDown() {
+        NextGameSpeed = EnemySpeed * SpeedGain;
+        SlowDownStage = 1;
     }
 
     public bool LevelUp()
     {
-        EnemySpeed = Mathf.Lerp(EnemySpeed, NextGameSpeed, GameLogic.GameDeltaTime * 1.5f);
-        ScenerySpeed = EnemySpeed;
+        SlowDownStage = 0;
+
+        ScenerySpeed = Mathf.Lerp(ScenerySpeed, NextGameSpeed, GameLogic.GameDeltaTime * 1.5f);
+        //The glitch of the scenery during level up if ice is shot lies in the following line:
         GameplayCamera.backgroundColor = Color.Lerp(GameplayCamera.backgroundColor, LevelColor, GameLogic.GameDeltaTime * 2f);
-        if (Mathf.Abs (EnemySpeed-NextGameSpeed) < 0.1f) {
+        if (Mathf.Abs (ScenerySpeed - NextGameSpeed) < 0.1f) {
             EnemySpeed = ScenerySpeed = NextGameSpeed;
-            NextGameSpeed = 0f;
+            //NextGameSpeed = 0f;
             PlayerSpeed *= SpeedGain;
             BulletSpeed *= SpeedGain;
             LevelDuration *= SpeedGain;
@@ -97,25 +92,39 @@ public class DifficultyCurve : MonoBehaviour
         return false;
     }
 
-    public void Freeze()
-    {
+    public void Freeze() {
         EnemySpeed = 0f;
+        GameFrozen = true;
         //Some recycling
         DefrostTime = -FreezeTime;
     }
 
-    public bool Defrost()
-    {
-        DefrostTime += GameLogic.GameDeltaTime;
-        if (DefrostTime>0)
-            EnemySpeed = Mathf.Lerp(0f, ScenerySpeed, DefrostTime);
-        if (EnemySpeed >= ScenerySpeed)
-            return true;
-        return false;
+    void Update() {
+        if (GameFrozen) {
+            DefrostTime += GameLogic.GameDeltaTime;
+            if (DefrostTime > 0)
+                EnemySpeed = Mathf.Lerp(0f, NextGameSpeed, DefrostTime);
+            GameFrozen = EnemySpeed < NextGameSpeed;
+        }
+        if (SlowDownStage == 1) {
+            GameplayCamera.backgroundColor = Color.Lerp(GameplayCamera.backgroundColor, BossTimeColor, GameLogic.GameDeltaTime * 2f);
+
+            ScenerySpeed = Mathf.Lerp(ScenerySpeed, 0f, GameLogic.GameDeltaTime * 1.5f);
+            if (ScenerySpeed < 0.1f) {
+                ScenerySpeed = 0f;
+                SlowDownStage=2;
+            }
+        }
     }
 
-	public void GameOver()
-	{
+    /*Check if the effect of ice bullet has worn off
+    public bool Ddefrost() {
+        if (EnemySpeed >= NextGameSpeed)
+            return true;
+        return false;
+    }*/
+
+	public void GameOver() {
 		EnemySpeed = 0.0f;
         ScenerySpeed = 0.0f;
         PlayerSpeed = 0.0f;
@@ -132,5 +141,6 @@ public class DifficultyCurve : MonoBehaviour
         EnemyDensity = EnemyStartDensity;
         BossStrength = BossStartStrength;
         GameplayCamera.backgroundColor = LevelColor;
+        GameFrozen = false;
     }
 }

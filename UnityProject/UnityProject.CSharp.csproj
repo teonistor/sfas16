@@ -73,15 +73,14 @@
     <Compile Include="Assets\Scripts\CreateMesh.cs" />
     <Compile Include="Assets\Scripts\CreateMesh2.cs" />
     <Compile Include="Assets\Scripts\DifficultyCurve.cs" />
-    <Compile Include="Assets\Scripts\DifficultyCurveNew.cs" />
     <Compile Include="Assets\Scripts\DisplayInventory.cs" />
     <Compile Include="Assets\Scripts\Enemy.cs" />
     <Compile Include="Assets\Scripts\EnemyFactory.cs" />
     <Compile Include="Assets\Scripts\GameInput.cs" />
     <Compile Include="Assets\Scripts\GameLogic.cs" />
-    <Compile Include="Assets\Scripts\GameLogicNew.cs" />
     <Compile Include="Assets\Scripts\PlayerCharacter.cs" />
     <Compile Include="Assets\Scripts\PowerupFactory.cs" />
+    <Compile Include="Assets\Scripts\SaveLoad.cs" />
     <Compile Include="Assets\Scripts\Weapon.cs" />
   </ItemGroup>
   <ItemGroup>

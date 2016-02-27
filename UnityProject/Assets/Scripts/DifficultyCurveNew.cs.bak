@@ -134,4 +134,8 @@ public class DifficultyCurveNew : MonoBehaviour
         BossStrength = BossStartStrength;
         GameplayCamera.backgroundColor = LevelColor;
     }
+
+    public void SwitchState(GameLogicNew.State NewState) {
+
+    }
 }

@@ -18,7 +18,7 @@ public class GameLogicNew : MonoBehaviour
     //private bool bossAlive;
 
 	//private List<GameObject> mActiveEnemies;
-	private DifficultyCurve mCurrentDifficulty;
+	private DifficultyCurveNew mCurrentDifficulty;
 	private PlayerCharacter mPlayerCharacter;
     private float mGameOverTime;
     private float mLevelTimeLeft;
@@ -49,7 +49,7 @@ public class GameLogicNew : MonoBehaviour
         GameInput.OnKeyPress += HandleKeyPress;
 
         //mActiveEnemies = new List<GameObject>();
-		mCurrentDifficulty = GetComponentInChildren<DifficultyCurve>();
+		mCurrentDifficulty = GetComponentInChildren<DifficultyCurveNew>();
 		mPlayerCharacter = GetComponentInChildren<PlayerCharacter>();
 		mGameStatus = State.NotPlaying;
         mGameOverTime = Time.timeSinceLevelLoad;
@@ -74,7 +74,14 @@ public class GameLogicNew : MonoBehaviour
 
         if (mGameStatus == State.LFrozen) {
             if (DifficultyCurveNew.StateSwitchFlag) {
-
+                mGameStatus = State.Level;
+                mCurrentDifficulty.SwitchState(State.Level);
+            }
+        }
+        if (mGameStatus == State.SlowDown) {
+            if (DifficultyCurveNew.StateSwitchFlag) {
+                mGameStatus = State.Level;
+                mCurrentDifficulty.SwitchState(State.Level);
             }
         }
         if (mGameStatus == State.Level || mGameStatus == State.LFrozen || mGameStatus == State.SlowDown) {
