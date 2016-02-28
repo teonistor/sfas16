@@ -26,6 +26,7 @@ public class GameLogic : MonoBehaviour
 	private int mMissedEnemies;
 	private State mGameStatus;
     private bool GameFrozen { get { return mCurrentDifficulty == null ? false : mCurrentDifficulty.GameFrozen; } }
+    private bool FireAllowed { get { return mCurrentDifficulty == null ? false : mCurrentDifficulty.FireAllowed; } }
     private int SlowDownStage { get { return mCurrentDifficulty == null ? -1 : mCurrentDifficulty.SlowDownStage; } }
 
     private List<GameObject> mActiveEnemies { get {return EnemyFactory.GetActiveEnemies(); } }
@@ -37,7 +38,7 @@ public class GameLogic : MonoBehaviour
     public static float ScenerySpeed { get { return DifficultyCurve.ScenerySpeed; } }
     public static float ScreenBounds { get; private set; }
 	public static float ScreenHeight { get; private set; }
-	public static bool Paused { get; private set; }
+    public static bool Paused;
 
 	void Awake()
 	{
@@ -78,7 +79,7 @@ public class GameLogic : MonoBehaviour
         if ( mGameStatus == State.Level )
 		{
 			mDistanceTravelled += ScenerySpeed * GameDeltaTime;
-			GameText.text = string.Format( "Distance: {0:0.0} m", mDistanceTravelled );
+            UpdateText(string.Format( "Distance: {0:0.0} m", mDistanceTravelled));
 
             mLevelTimeLeft -= GameDeltaTime;
 
@@ -104,21 +105,9 @@ public class GameLogic : MonoBehaviour
                         case 2: //Slowing down has finished; switch to boss state
                             mGameStatus = State.Boss;
                             boss = new Boss(GameplayCamera, EnemyMaterial);
+                            mCurrentDifficulty.TriggerTutorial(11);
                             break;
                     }
-                    /*
-                    if (GameSlowingDown) {
-                        if (mCurrentDifficulty.CheckSlowDown()) {
-                            mGameStatus = State.Boss;
-                            boss = new Boss(GameplayCamera, EnemyMaterial);
-                        }
-                    }
-                    else {
-                        mCu
-                    }
-                    
-                    //Switching game type*/
-                    
 
                     //At this point, we know there are no enemies to check, so it is OK to skip the loop below
                     return;
@@ -146,7 +135,7 @@ public class GameLogic : MonoBehaviour
                     mCurrentDifficulty.GameOver();
                     mGameOverTime = Time.timeSinceLevelLoad;
                     mGameStatus = State.GameOver;
-                    GameText.text = string.Format("You died!\nTotal distance: {0:0.0} m", mDistanceTravelled);
+                    UpdateText(string.Format("You died!\nTotal distance: {0:0.0} m", mDistanceTravelled));
                 }
 
                 //Check if the enemy has been hit by a bullet
@@ -165,11 +154,11 @@ public class GameLogic : MonoBehaviour
 				mCurrentDifficulty.GameOver();
                 mGameOverTime = Time.timeSinceLevelLoad;
                 mGameStatus = State.GameOver;
-				GameText.text = string.Format( "You have been invaded!\nTotal distance: {0:0.0} m", mDistanceTravelled );
+                UpdateText(string.Format( "You have been invaded!\nTotal distance: {0:0.0} m", mDistanceTravelled));
 			}
 		}
 
-        if (mGameStatus == State.Boss)
+        else if (mGameStatus == State.Boss)
         {
             if (boss!=null) {
 
@@ -184,7 +173,7 @@ public class GameLogic : MonoBehaviour
                         mCurrentDifficulty.GameOver();
                         mGameOverTime = Time.timeSinceLevelLoad;
                         mGameStatus = State.GameOver;
-                        GameText.text = string.Format("You have been eaten!\nTotal distance: {0:0.0} m", mDistanceTravelled);
+                        UpdateText( string.Format("You have been eaten!\nTotal distance: {0:0.0} m", mDistanceTravelled));
                     }
                 }
 
@@ -193,6 +182,7 @@ public class GameLogic : MonoBehaviour
                     if (bullet.CheckHit(boss.Position(), BossHitDistance, true)) {
                         if (boss.Hit(bullet.DamageValue)) {
                             boss = null;
+                            mCurrentDifficulty.TriggerTutorial(13);
                         }
                         break;
                     }
@@ -203,7 +193,7 @@ public class GameLogic : MonoBehaviour
             //No more boss, transitioning to normal
             else {
                 mDistanceTravelled += ScenerySpeed * GameDeltaTime;
-                GameText.text = string.Format("Distance: {0:0.0} m", mDistanceTravelled);
+                UpdateText( string.Format("Distance: {0:0.0} m", mDistanceTravelled));
 
                 if (mCurrentDifficulty.LevelUp()) {
                     mGameStatus = State.Level;
@@ -212,16 +202,34 @@ public class GameLogic : MonoBehaviour
                 }
             }
         }
+
+        else if (mGameStatus == State.TapToStart) {
+            mCurrentDifficulty.TriggerTutorial(1);
+            if (mCurrentDifficulty.TutorialStage != 0) {
+                mGameStatus = State.Level;
+            }
+        }
+    }
+
+    private void UpdateText(string text) {
+        //Text is only allowed to update when no tutorial is in progress
+        if (mCurrentDifficulty.TutorialStage == 0) {
+            GameText.text = text;
+        }
     }
 
     private void Fire (Bullet.Type BulletType) {
 
-        int ShotBullet = mPlayerCharacter.Fire(BulletType);
+        //Fire may be denied by tutorial
+        if (FireAllowed) {
 
-        //If an ice bullet was shot, freeze the game
-        if (ShotBullet == (int)Bullet.Type.Ice) {
-            //GameFrozen = true;
-            mCurrentDifficulty.Freeze();
+            int ShotBullet = mPlayerCharacter.Fire(BulletType);
+
+            //If an ice bullet was shot, freeze the game
+            if (ShotBullet == (int)Bullet.Type.Ice) {
+                //GameFrozen = true;
+                mCurrentDifficulty.Freeze();
+            }
         }
     }
 
@@ -245,60 +253,51 @@ public class GameLogic : MonoBehaviour
 
 	private void HandleOnTap( Vector3 position )
 	{
-		switch( mGameStatus )
-		{
-		case State.TapToStart:
-			Paused = false;
-			mGameStatus = State.Level;
-			break;
-        case State.Level:
-        case State.Boss:
-                //The 1+ thingy is a little fragile, because it relies on a relationship between the 2 enums
-                Fire((Bullet.Type)(1+DisplayInventory.ButtonAt(new Vector2(position.x,position.y))));
-			break;
-		case State.GameOver:
-            if (Time.timeSinceLevelLoad - mGameOverTime > WaitTime)
-            { 
-			    Reset();
-			    GameText.text = "Tap to start";
-			    mGameStatus = State.TapToStart;
-			}
-            break;
-		}
-	}
-
-	
-	private void HandleOnSwipe( GameInput.Direction direction )
-	{
-		if( mGameStatus == State.Level || mGameStatus == State.Boss )
-		{
-			switch( direction )
-			{
-			case GameInput.Direction.Left:
-				mPlayerCharacter.MoveLeft();
-				break;
-			case GameInput.Direction.Right:
-				mPlayerCharacter.MoveRight();
-				break;
-			}
-		}
-	}
-
-    private void HandleKeyPress (GameInput.Key key)
-    {
-        switch (mGameStatus)
-        {
+        switch (mGameStatus) {
             case State.TapToStart:
-                if (key == GameInput.Key.Fire)
-                {
+                Paused = false;
+                mGameStatus = State.Level;
+                break;
+            case State.Level:
+            case State.Boss:
+                //The 1+ thingy is a little fragile, because it relies on a relationship between the 2 enums
+                Fire((Bullet.Type)(1 + DisplayInventory.ButtonAt(new Vector2(position.x, position.y))));
+                break;
+            case State.GameOver:
+                if (Time.timeSinceLevelLoad - mGameOverTime > WaitTime) {
+                    Reset();
+                    GameText.text = "Tap to start";
+                    mGameStatus = State.TapToStart;
+                }
+                break;
+        }
+	}
+
+
+    private void HandleOnSwipe(GameInput.Direction direction) {
+        if (mGameStatus == State.Level || mGameStatus == State.Boss) {
+            switch (direction) {
+                case GameInput.Direction.Left:
+                    mPlayerCharacter.MoveLeft();
+                    break;
+                case GameInput.Direction.Right:
+                    mPlayerCharacter.MoveRight();
+                    break;
+            }
+        }
+    }
+
+    private void HandleKeyPress(GameInput.Key key) {
+        switch (mGameStatus) {
+            case State.TapToStart:
+                if (key == GameInput.Key.Fire) {
                     Paused = false;
                     mGameStatus = State.Level;
                 }
                 break;
             case State.Level:
             case State.Boss:
-                switch (key)
-                {
+                switch (key) {
                     case GameInput.Key.Left:
                         mPlayerCharacter.MoveLeft();
                         break;

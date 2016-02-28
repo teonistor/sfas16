@@ -74,6 +74,7 @@
     <Compile Include="Assets\Scripts\CreateMesh2.cs" />
     <Compile Include="Assets\Scripts\DifficultyCurve.cs" />
     <Compile Include="Assets\Scripts\DisplayInventory.cs" />
+    <Compile Include="Assets\Scripts\DisplayTutorial.cs" />
     <Compile Include="Assets\Scripts\Enemy.cs" />
     <Compile Include="Assets\Scripts\EnemyFactory.cs" />
     <Compile Include="Assets\Scripts\GameInput.cs" />
@@ -82,9 +83,6 @@
     <Compile Include="Assets\Scripts\PowerupFactory.cs" />
     <Compile Include="Assets\Scripts\SaveLoad.cs" />
     <Compile Include="Assets\Scripts\Weapon.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Assets\Shaders\BasicDiffuse.shader" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\SyntaxTree\UnityVS\2015\UnityVS.CSharp.targets" />
 </Project>

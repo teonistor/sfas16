@@ -21,12 +21,16 @@ public class PlayerCharacter : MonoBehaviour
 	public Weapon Weapon { get { return mGun; } }
 	public int Column { get; private set; }
 
+    //Through delegate, Difficulty Curve will allow this script to trigger a tutorial when the first inventory element is added
+    public delegate void TriggerTutorial16(int code);
+    public static event TriggerTutorial16 TriggerTutorial;
+
     /*
     void Awake() {
         
     }*/
 
-	void Start() 
+    void Start() 
 	{
 		mColumnSize = ( GameLogic.ScreenHeight * GameplayCamera.aspect * 0.8f ) / 3;
         mStartY = GameLogic.ScreenHeight * -0.4f;
@@ -69,6 +73,7 @@ public class PlayerCharacter : MonoBehaviour
         if (CollectedPowerup >= 0)
         {
             Inventory[CollectedPowerup]++;
+            TriggerTutorial(16);
         }
     }
 

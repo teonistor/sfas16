@@ -100,6 +100,14 @@ public class CreateMesh2 : MonoBehaviour
 
         return triangles;
 	}
+
+    private Vector4[] getTans() {
+        Vector4[] tans = new Vector4[16];
+        for (int i = 0; i < 16; i++) {
+            tans[i] = new Vector4(0, 1, 0, 1);
+        }
+        return tans;
+    }
 	
 	private Mesh DoCreateMesh()
 	{
@@ -109,7 +117,8 @@ public class CreateMesh2 : MonoBehaviour
 		m.triangles = GetTriangles();
         m.uv = GetUVs(m.vertices);
         m.RecalculateNormals();
-		
+        m.tangents = getTans();
+
 		return m;
 	}
 	

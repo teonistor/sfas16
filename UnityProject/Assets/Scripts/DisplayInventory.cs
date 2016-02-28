@@ -118,8 +118,6 @@ public class DisplayInventory : MonoBehaviour {
     }
 
     private int ButtonAtOnInstance (Vector2 position) {
-
-        //print(position);
         int narrow, wide;
         position = (ScreenCornerInPixels - position)/ButtonSizeInPixels;
         if (ScreenHorizontal) {
@@ -130,7 +128,6 @@ public class DisplayInventory : MonoBehaviour {
             narrow = (int)(position.x);
             wide = (int)(position.y);
         }
-        print("" + narrow + "  " + wide);
         if (narrow==0 && wide>=0 && wide<(int)PowerupFactory.Type.NoPowerups && Buttons[wide].activeInHierarchy) {
             return wide;
         }

@@ -1,6 +1,4 @@
 ﻿using UnityEngine;
-//using System;
-using System.Collections;
 
 public class DifficultyCurve : MonoBehaviour 
 {
@@ -24,6 +22,7 @@ public class DifficultyCurve : MonoBehaviour
 
     private Color LevelColor;
     private Color BossTimeColor;
+    private int SpawnMask;
 
     public static float EnemySpeed { get; private set; }
     public static float ScenerySpeed { get; private set; }
@@ -32,7 +31,9 @@ public class DifficultyCurve : MonoBehaviour
     public static float LevelDuration { get; private set; }
     public static int BossStrength { get; private set; }
     public bool GameFrozen { get; private set; }
+    public bool FireAllowed { get; private set; }
     public int SlowDownStage { get; private set; }
+    public int TutorialStage { get; private set; }
 
     void Awake()
 	{
@@ -42,6 +43,9 @@ public class DifficultyCurve : MonoBehaviour
         Reset();
 
         mTimeToDanger = new float [] { EnemyCheckGap, EnemyCheckGap, EnemyCheckGap };
+
+        //This delegate will allow Player Character to trigger the last tutorial, on addition of first element to inventory
+        PlayerCharacter.TriggerTutorial += TriggerTutorial;
     }
 
     public int SpawnPattern()
@@ -64,7 +68,7 @@ public class DifficultyCurve : MonoBehaviour
                 }
             }
         }
-        return pattern;
+        return pattern&SpawnMask;
     }
 
     public void SlowDown() {
@@ -100,6 +104,55 @@ public class DifficultyCurve : MonoBehaviour
     }
 
     void Update() {
+        switch (TutorialStage) {
+            //Automatically triggering next piece of tutorial
+            case -1:
+            case -2:
+            case -5:
+            case -6:
+            case -8:
+            case -9:
+            case -13:
+            case -14: TriggerTutorial(-TutorialStage+1); break;
+            case -3:
+                GameLogic.Paused = false;
+                TriggerTutorial(4);
+                break;
+            case -4:
+                //This will force enemies on the centre column
+                SpawnMask = 2;
+                FireAllowed = true;
+                TriggerTutorial(5);
+                break;
+            case -7:
+                //This will force enemies on the left column
+                SpawnMask = 4;
+                TriggerTutorial(8);
+                break;
+            case -10:
+                GameLogic.Paused = false;
+                FireAllowed = true;
+                //Allow enemies everywhere
+                SpawnMask = 7;
+                break;
+            case -11:
+                GameLogic.Paused = false;
+                SpawnMask = 7;
+                FireAllowed = true;
+                TriggerTutorial(12);
+                break;
+            case -15:
+                GameLogic.Paused = false;
+                SpawnMask = 7;
+                FireAllowed = true;
+                break;
+        }
+
+        //Negative numbers from above mean tutorial is over
+        if (TutorialStage < 0) {
+            TutorialStage = 0;
+        }
+
         if (GameFrozen) {
             DefrostTime += GameLogic.GameDeltaTime;
             if (DefrostTime > 0)
@@ -117,13 +170,6 @@ public class DifficultyCurve : MonoBehaviour
         }
     }
 
-    /*Check if the effect of ice bullet has worn off
-    public bool Ddefrost() {
-        if (EnemySpeed >= NextGameSpeed)
-            return true;
-        return false;
-    }*/
-
 	public void GameOver() {
 		EnemySpeed = 0.0f;
         ScenerySpeed = 0.0f;
@@ -135,12 +181,47 @@ public class DifficultyCurve : MonoBehaviour
 	{
 		EnemySpeed = GameStartSpeed;
         ScenerySpeed = GameStartSpeed;
+        NextGameSpeed = GameStartSpeed;
+
         PlayerSpeed = PlayerStartSpeed;
 		BulletSpeed = BulletStartSpeed;
+
         LevelDuration = LevelStartDuration;
         EnemyDensity = EnemyStartDensity;
         BossStrength = BossStartStrength;
+
         GameplayCamera.backgroundColor = LevelColor;
+        SpawnMask = 7;
+
         GameFrozen = false;
+        FireAllowed = true;
+        SlowDownStage = 0;
+        TutorialStage = 0;
+    }
+
+    public void TriggerTutorial (int code) {
+        SaveLoad persistence = gameObject.GetComponentInChildren<SaveLoad>();
+        print(code);
+        if (((persistence.TutorialPattern >> code) & 1 ) != 0) {
+            // Tutorial has not been done, so do it
+            TutorialStage = code;
+            gameObject.GetComponentInChildren<DisplayTutorial>().Display(code);
+
+            //For some tutorials we ought to stop things from moving
+            if (code == 1 || code == 2 || code == 3 || code== 9 || code == 11 || code == 13) {
+                GameLogic.Paused = true;
+            }
+
+            //For some tutorials we ought to prevent enemies from spawning and forbid shooting
+            if (code == 1 || code == 2 || code == 3 || code == 4 || code== 9 || code == 11 || code == 13) {
+                SpawnMask = 0;
+                FireAllowed = false;
+            }
+        }
+    }
+
+    public void NotifyTutorialDone (int code) {
+        gameObject.GetComponentInChildren<SaveLoad>().addCompletedTutorial(code);
+        TutorialStage = -code;
     }
 }
