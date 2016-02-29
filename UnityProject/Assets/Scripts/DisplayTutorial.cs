@@ -48,7 +48,7 @@ public class DisplayTutorial : MonoBehaviour {
             case 1:
                 TextField.text = "This is you.";
                 TutorialText.transform.position = new Vector3(GameLogic.ScreenBounds * 0.3f, GameLogic.ScreenHeight * -0.35f, 0f);
-                CurrentTimeLeft = 2f;
+                CurrentTimeLeft = 5f;
                 break;
             case 2:
                 TextField.text = "Ahead of you is the\nneverending road.";

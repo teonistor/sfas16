@@ -1,8 +1,8 @@
 ﻿using System.IO;
 using UnityEngine;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
+//using System.Runtime.Serialization;
+//using System.Runtime.Serialization.Formatters.Binary;
 
 public class SaveLoad : MonoBehaviour {
 
@@ -24,16 +24,20 @@ public class SaveLoad : MonoBehaviour {
 
         if (File.Exists(FilePathScores)) {
             FileStream file = File.Open(FilePathScores, FileMode.Open);
-            BinaryFormatter bf = new BinaryFormatter();
-            HighScores = (List<float>)bf.Deserialize(file);
-            file.Close();
+            using (BinaryReader br = new BinaryReader(file)) {
+                while (file.Length > br.BaseStream.Position) {
+                    HighScores.Add((float)br.ReadDouble());
+                }
+            }
         }
 
         if (File.Exists(FilePathTutorials)) {
             FileStream file = File.Open(FilePathTutorials, FileMode.Open);
-            BinaryFormatter bf = new BinaryFormatter();
-            TutorialsLeft = (List<bool>)bf.Deserialize(file);
-            file.Close();
+            using (BinaryReader br = new BinaryReader(file)) {
+                for (int i = 0; i < 16; i++) {
+                    TutorialsLeft[i] = br.ReadBoolean();
+                }
+            }
         }
     }
 	
@@ -42,9 +46,11 @@ public class SaveLoad : MonoBehaviour {
             TutorialsLeft[i] = false;
         }
         FileStream file = File.Create(FilePathTutorials);
-        BinaryFormatter bf = new BinaryFormatter();
-        bf.Serialize(file, TutorialsLeft);
-        file.Close();
+        using (BinaryWriter bw = new BinaryWriter(file)) {
+            for (int i = 0; i < 16; i++) {
+                bw.Write(TutorialsLeft[i]);
+            }
+        }
     }
 	
     public bool addHighScore (float score) {
@@ -54,9 +60,11 @@ public class SaveLoad : MonoBehaviour {
             HighScores.RemoveAt(0);
         }
         FileStream file = File.Create(FilePathScores);
-        BinaryFormatter bf = new BinaryFormatter();
-        bf.Serialize(file, HighScores);
-        file.Close();
+        using (BinaryWriter bw = new BinaryWriter(file)) {
+            for (int i = 0; i < HighScores.Count; i++) {
+                bw.Write((double)HighScores[i]);
+            }
+        }
         if (HighScores[HighScores.Count - 1] == score)
             return true;
         return false;
