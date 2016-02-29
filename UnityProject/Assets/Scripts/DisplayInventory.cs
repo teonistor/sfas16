@@ -15,7 +15,7 @@ public class DisplayInventory : MonoBehaviour {
     private static DisplayInventory mInstance;
     private Vector3[] ButtonPositions;
     private GameObject[] Buttons;
-    private Vector2 ScreenCorner;
+    //private Vector2 ScreenCorner;
     private bool ScreenHorizontal;
     private float ButtonSizeInPixels;
     private Vector2 ScreenCornerInPixels;
@@ -38,7 +38,7 @@ public class DisplayInventory : MonoBehaviour {
         // Work out where the corner button should be
         float y = GameLogic.ScreenHeight * 0.5f;
         float x = y * GameplayCamera.aspect;
-        ScreenCorner = new Vector2(x, y);
+        //ScreenCorner = new Vector2(x, y);
 
         //Work out some pixel sizes which will be needed when user taps on the inventory
         ScreenCornerInPixels = new Vector2(Screen.width, Screen.height);

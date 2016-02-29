@@ -1,6 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
-using System;
 
 public class Bullet
 {
@@ -64,10 +62,8 @@ public class Bullet
 
                 Inflation += GameLogic.GameDeltaTime;
                 position.y += GameLogic.GameDeltaTime * GameLogic.BulletSpeed;
-                //scale *= GameLogic.GameDeltaTime * GameLogic.BulletSpeed * InflationRate;
-                scale = Vector3.Lerp(scale, new Vector3(GameLogic.ScreenHeight, GameLogic.ScreenHeight, GameLogic.ScreenHeight)*3f, Inflation);
+                scale = Vector3.Lerp(scale, new Vector3(GameLogic.ScreenHeight, GameLogic.ScreenHeight, GameLogic.ScreenHeight)*5f, Inflation);
                 color = Color.Lerp(color, Color.clear, Inflation);
-                //Debug.Log(color); //Warning: Transparency does not get set!
 
                 bullet.transform.position = position;
                 bullet.transform.localScale = scale;
@@ -90,17 +86,6 @@ public class Bullet
     public bool CheckHit(Vector3 EnemyPosition, float TouchingDistance, bool EnemyIsBoss) {
         if (bullet.activeInHierarchy) {
             float diffToBullet;
-            /*
-            switch (mType) {
-                case Type.Normal:
-                case Type.Golden:
-                    diffToBullet = (EnemyPosition - bullet.transform.position).sqrMagnitude;
-                    break;
-                case Type.Explosive:
-                case Type.Ice:
-                    diffToBullet = (EnemyPosition - bullet.transform.position).sqrMagnitude - Inflation;
-                    break;
-            }*/
 
             if (mType == Type.Explosive && bullet.GetComponent<CreateMesh>().Material.color.a<0.5f)
                 return true;

@@ -98,7 +98,7 @@ public class PowerupFactory : MonoBehaviour {
         ExplosionItems.Clear();
         for (int i = 0; i < available; i++)
         {
-            GameObject NewItem = Dispatch((Type)Random.Range(0, 2), SourcePosition);
+            GameObject NewItem = Dispatch((Type)Random.Range(0, (int)Type.NoPowerups), SourcePosition);
             Vector3 NewSpeed = new Vector3(Random.Range(-SpeedAmount, SpeedAmount), Random.Range(-SpeedAmount, 0f), 0f);
             ExplosionItems.Add(new ExplosionItem(NewItem, NewSpeed));
         }

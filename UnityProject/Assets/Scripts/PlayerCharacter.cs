@@ -79,30 +79,17 @@ public class PlayerCharacter : MonoBehaviour
 
 	public void Reset()
 	{
-        //Vector3 position = new Vector3( 0.0f, mStartY, 0.0f );
         transform.position = new Vector3(0f, mStartY, 0f);
 		mTargetPosition = 0.0f;
-        //Inventory = new int[(int)PowerupFactory.Type.NoPowerups];
-        Inventory = new int[] { 0, 12, 3 };
+        Inventory = new int[(int)PowerupFactory.Type.NoPowerups];
 
-		Column = 1;
+        Column = 1;
 	}
 
-	public int Fire (Bullet.Type BulletType/*, bool permissive*/)
+	public int Fire (Bullet.Type BulletType)
 	{
 		if( mGun != null )
-		{
-            /*Decision
-            if (BulletType!=Bullet.Type.Normal && Inventory[(int)BulletType] > 0) {
-                Inventory[(int)BulletType]--;
-            }
-            else if (BulletType != Bullet.Type.Normal && permissive) {
-                //BulletType = Bullet.Type.Normal;
-            }
-            else if (!permissive)
-                return -1;*/
-
-            //Decision
+		{   //Decision
             //Inventory is based on the Powerups enum, which is incompatible with the Bullet enum
             //A math expression could be used, but it would be difficult to understand and would break if anything changed about either of the 2 objects
             int invIndex = -1;

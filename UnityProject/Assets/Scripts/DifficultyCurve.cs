@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System.Collections.Generic;
 
 public class DifficultyCurve : MonoBehaviour 
 {
@@ -125,8 +126,8 @@ public class DifficultyCurve : MonoBehaviour
                 TriggerTutorial(5);
                 break;
             case -7:
-                //This will force enemies on the left column
-                SpawnMask = 4;
+                //This will force enemies on the sides
+                SpawnMask = 5;
                 TriggerTutorial(8);
                 break;
             case -10:
@@ -200,9 +201,9 @@ public class DifficultyCurve : MonoBehaviour
     }
 
     public void TriggerTutorial (int code) {
-        SaveLoad persistence = gameObject.GetComponentInChildren<SaveLoad>();
-        print(code);
-        if (((persistence.TutorialPattern >> code) & 1 ) != 0) {
+        List<bool> TutorialsLeft = gameObject.GetComponentInChildren<SaveLoad>().TutorialsLeft;
+        
+        if (TutorialsLeft[code-1]) {
             // Tutorial has not been done, so do it
             TutorialStage = code;
             gameObject.GetComponentInChildren<DisplayTutorial>().Display(code);
@@ -218,10 +219,16 @@ public class DifficultyCurve : MonoBehaviour
                 FireAllowed = false;
             }
         }
+        else {
+            //tbc!!
+        }
     }
 
     public void NotifyTutorialDone (int code) {
-        gameObject.GetComponentInChildren<SaveLoad>().addCompletedTutorial(code);
+        // Make note when the last tutorial in a cascade has been done
+        if (code==10 || code == 12 || code == 15 || code == 16) {
+            gameObject.GetComponentInChildren<SaveLoad>().addCompletedTutorial(code);
+        }
         TutorialStage = -code;
     }
 }

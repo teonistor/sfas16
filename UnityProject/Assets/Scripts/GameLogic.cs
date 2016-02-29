@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 
 public class GameLogic : MonoBehaviour 
@@ -13,18 +12,16 @@ public class GameLogic : MonoBehaviour
     [SerializeField] private float WaitTime;
 	[SerializeField] private int MaxMissedEnemies;
 
-	private enum State { TapToStart, Level, Boss, GameOver }; //will add: tutorial, freeze (?)
+	public enum State { TapToStart, Level, Boss, GameOver };
     private Boss boss;
-    //private bool bossAlive;
-
-	//private List<GameObject> mActiveEnemies;
+    
 	private DifficultyCurve mCurrentDifficulty;
 	private PlayerCharacter mPlayerCharacter;
     private float mGameOverTime;
     private float mLevelTimeLeft;
     private float mDistanceTravelled;
 	private int mMissedEnemies;
-	private State mGameStatus;
+	public State mGameStatus { get; private set; }
     private bool GameFrozen { get { return mCurrentDifficulty == null ? false : mCurrentDifficulty.GameFrozen; } }
     private bool FireAllowed { get { return mCurrentDifficulty == null ? false : mCurrentDifficulty.FireAllowed; } }
     private int SlowDownStage { get { return mCurrentDifficulty == null ? -1 : mCurrentDifficulty.SlowDownStage; } }
@@ -68,18 +65,13 @@ public class GameLogic : MonoBehaviour
 	void Update()
 	{
 		GameDeltaTime = Paused ? 0.0f : Time.deltaTime;
-        //List<GameObject> mActiveEnemies = new List<GameObject> ( EnemyFactory.GetActiveEnemies());
-        
-        /*if (GameFrozen) {
-            if (mCurrentDifficulty.Defrost()) {
-                GameFrozen = false;
-            }
-        }*/
 
         if ( mGameStatus == State.Level )
 		{
 			mDistanceTravelled += ScenerySpeed * GameDeltaTime;
-            UpdateText(string.Format( "Distance: {0:0.0} m", mDistanceTravelled));
+            if (mDistanceTravelled != 0f) {
+                UpdateText(string.Format("Distance: {0:0.0} m", mDistanceTravelled));
+            }
 
             mLevelTimeLeft -= GameDeltaTime;
 
@@ -132,10 +124,7 @@ public class GameLogic : MonoBehaviour
 
                 //Check if the enemy is too close to the player. If so, end the game.
                 else if ((mPlayerCharacter.transform.position - ThisPosition).sqrMagnitude < PlayerKillDistance) {
-                    mCurrentDifficulty.GameOver();
-                    mGameOverTime = Time.timeSinceLevelLoad;
-                    mGameStatus = State.GameOver;
-                    UpdateText(string.Format("You died!\nTotal distance: {0:0.0} m", mDistanceTravelled));
+                    GameOver("You died!");
                 }
 
                 //Check if the enemy has been hit by a bullet
@@ -151,11 +140,9 @@ public class GameLogic : MonoBehaviour
 			
             //Check if the player has been "invaded" (too many enemies were missed
 			if( mMissedEnemies >= MaxMissedEnemies ) {
-				mCurrentDifficulty.GameOver();
-                mGameOverTime = Time.timeSinceLevelLoad;
-                mGameStatus = State.GameOver;
-                UpdateText(string.Format( "You have been invaded!\nTotal distance: {0:0.0} m", mDistanceTravelled));
-			}
+                GameOver("You have been invaded!");
+
+            }
 		}
 
         else if (mGameStatus == State.Boss)
@@ -170,10 +157,7 @@ public class GameLogic : MonoBehaviour
 
                     //Check if boss has eaten the player and if so end the game
                     if (boss.HasEaten(mPlayerCharacter.transform.position)) {
-                        mCurrentDifficulty.GameOver();
-                        mGameOverTime = Time.timeSinceLevelLoad;
-                        mGameStatus = State.GameOver;
-                        UpdateText( string.Format("You have been eaten!\nTotal distance: {0:0.0} m", mDistanceTravelled));
+                        GameOver("You have been eaten!");
                     }
                 }
 
@@ -208,14 +192,14 @@ public class GameLogic : MonoBehaviour
             if (mCurrentDifficulty.TutorialStage != 0) {
                 mGameStatus = State.Level;
             }
+            else {
+                GameText.text = "Tap the screen or press W to start";
+            }
         }
     }
 
     private void UpdateText(string text) {
-        //Text is only allowed to update when no tutorial is in progress
-        if (mCurrentDifficulty.TutorialStage == 0) {
-            GameText.text = text;
-        }
+        GameText.text = text;
     }
 
     private void Fire (Bullet.Type BulletType) {
@@ -231,6 +215,34 @@ public class GameLogic : MonoBehaviour
                 mCurrentDifficulty.Freeze();
             }
         }
+    }
+
+    void GameOver(string message) {
+        mCurrentDifficulty.GameOver();
+        mGameOverTime = Time.timeSinceLevelLoad;
+        mGameStatus = State.GameOver;
+        SaveLoad persistence = GetComponentInChildren<SaveLoad>();
+
+        message = "\n\n" + message;
+        message += string.Format("\nYou have travelled {0:0.0} m\n\n", mDistanceTravelled);
+
+        if (persistence.addHighScore(mDistanceTravelled)) {
+            message += "You have set a new top high score!";
+            if (persistence.HighScores.Count == 1) {
+                message += "\nBut don't be too proud just yet,\nfor it's also a new low score.\n\n";
+            }
+            else {
+                message += "\n\n";
+            }
+        }
+        message += "Here are the current high scores:";
+
+        for (int i = persistence.HighScores.Count-1; i >= 0; i--) {
+            message += string.Format("\n {0:0.0} ", persistence.HighScores[i]);
+        }
+
+        message += "\n\nTap the screen or press W to play again";
+        UpdateText(message);
     }
 
 	private void Reset()
@@ -249,6 +261,7 @@ public class GameLogic : MonoBehaviour
 		mMissedEnemies = 0;
 		mDistanceTravelled = 0.0f;
         mLevelTimeLeft = DifficultyCurve.LevelDuration;
+        GameText.text = "";
     }
 
 	private void HandleOnTap( Vector3 position )
@@ -266,8 +279,11 @@ public class GameLogic : MonoBehaviour
             case State.GameOver:
                 if (Time.timeSinceLevelLoad - mGameOverTime > WaitTime) {
                     Reset();
-                    GameText.text = "Tap to start";
-                    mGameStatus = State.TapToStart;
+                    Paused = false;
+                    mGameStatus = State.Level;
+
+                    //In the absolutely improbable event that the user died during the tutorial
+                    mCurrentDifficulty.TriggerTutorial(1);
                 }
                 break;
         }
@@ -321,8 +337,11 @@ public class GameLogic : MonoBehaviour
             case State.GameOver:
                 if (Time.timeSinceLevelLoad - mGameOverTime > WaitTime && key == GameInput.Key.Fire) {
                     Reset();
-                    GameText.text = "Tap to start";
-                    mGameStatus = State.TapToStart;
+                    Paused = false;
+                    mGameStatus = State.Level;
+
+                    //In the absolutely improbable event that the user died during the tutorial
+                    mCurrentDifficulty.TriggerTutorial(1);
                 }
                 break;
         }

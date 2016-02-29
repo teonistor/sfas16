@@ -128,5 +128,9 @@ public class CreateMesh2 : MonoBehaviour
 		mMesh = gameObject.AddComponent<MeshFilter>();
 		mMesh.mesh = DoCreateMesh();
 		mMeshRenderer.material = Mat;
-	}
+    }
+
+    void Update() {
+        mMeshRenderer.material = Mat;
+    }
 }
