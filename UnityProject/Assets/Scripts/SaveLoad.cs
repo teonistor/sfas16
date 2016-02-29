@@ -14,6 +14,10 @@ public class SaveLoad : MonoBehaviour {
         FilePathScores = Path.Combine(Application.persistentDataPath, "hscore");
         FilePathTutorials = Path.Combine(Application.persistentDataPath, "tutorial");
 
+        /* High scores are stored as a list of floats (they become doubles when written into the file
+           A list of booleans tells about each tutorial, if it was completed or not (although many of
+              them are notified about in groups)
+        */
         HighScores = new List<float>();
         TutorialsLeft = new List<bool>();
         for (int i = 0; i < 16; i++) {

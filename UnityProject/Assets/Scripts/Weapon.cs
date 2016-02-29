@@ -8,8 +8,6 @@ public class Weapon : MonoBehaviour
     public static Color[] BulletColors { get; private set; }
     public static float BulletScale { get; private set; }
 
-
-
     //Fields to be set within Unity
     [SerializeField] private Material BulletMaterialNormal;
 	[SerializeField] private Material BulletMaterialGolden;

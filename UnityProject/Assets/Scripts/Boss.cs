@@ -2,8 +2,6 @@
 
 public class Boss {
     
-	//[SerializeField] private Camera GameplayCamera;
-    //[SerializeField] private Material BossMaterial;
     private float Size = 8f;
     private float activeWidth;
     private float MoveTime;
@@ -17,8 +15,7 @@ public class Boss {
         m.Material = material;
         health = DifficultyCurve.BossStrength;
         activeWidth = GameLogic.ScreenHeight * camera.aspect * 0.4f;
-           // activeWidth = 10; //for now
-        /*PrevPosition =*/ NextPosition = new Vector3(0f, GameLogic.ScreenHeight * 0.5f, 0f);
+        NextPosition = new Vector3(0f, GameLogic.ScreenHeight * 0.5f, 0f);
         TheBoss.transform.position = new Vector3(0f, GameLogic.ScreenHeight * 0.6f, 0f);
         TheBoss.transform.localScale = new Vector3(Size, Size, Size);
         TheBoss.transform.localRotation = Quaternion.AngleAxis(180.0f, Vector3.forward);
@@ -42,7 +39,6 @@ public class Boss {
         }
         else {
             //move
-            //TheBoss.transform.position = Vector3.Lerp(TheBoss.transform.position, NextPosition, GameLogic.GameDeltaTime*2f);
             MoveTime += GameLogic.GameDeltaTime * 0.75f;
             TheBoss.transform.position = Vector3.Lerp(PrevPosition, NextPosition, MoveTime);
             //rotate

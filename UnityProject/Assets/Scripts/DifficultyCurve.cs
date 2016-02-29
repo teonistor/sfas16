@@ -55,16 +55,22 @@ public class DifficultyCurve : MonoBehaviour
 
         for (int ColumnCount = 0; ColumnCount < 3; ColumnCount++)
         {
+            //Count down the time until we should ask ourselves whether there should be an enemy on this column
             mTimeToDanger[ColumnCount] -= GameLogic.GameDeltaTime;
             if (mTimeToDanger[ColumnCount] < 0f)
             {
                 if (Random.Range(0f, 100f) < EnemyDensity)
                 {
+                    //The following line is a hack to make the spawning of an enemy more probable when some columns are
+                    //blocked by the mask. It only works in one direction and it is only used during the tutorials.
+                    //That's why it's a hack.
                     pattern |= 1 << ((SpawnMask&1<<ColumnCount)!=0? ColumnCount : ColumnCount+1);
+
+                    //if an enemy appeared, ask again after a longer time
                     mTimeToDanger[ColumnCount] = EnemySafeGap;
                 }
                 else
-                {
+                {   //if an enemy did not appear, ask again after a shorter time
                     mTimeToDanger[ColumnCount] = EnemyCheckGap;
                 }
             }
@@ -82,11 +88,9 @@ public class DifficultyCurve : MonoBehaviour
         SlowDownStage = 0;
 
         ScenerySpeed = Mathf.Lerp(ScenerySpeed, NextGameSpeed, GameLogic.GameDeltaTime * 1.5f);
-        //The glitch of the scenery during level up if ice is shot lies in the following line:
         GameplayCamera.backgroundColor = Color.Lerp(GameplayCamera.backgroundColor, LevelColor, GameLogic.GameDeltaTime * 2f);
         if (Mathf.Abs (ScenerySpeed - NextGameSpeed) < 0.1f) {
             EnemySpeed = ScenerySpeed = NextGameSpeed;
-            //NextGameSpeed = 0f;
             PlayerSpeed *= SpeedGain;
             BulletSpeed *= SpeedGain;
             LevelDuration *= SpeedGain;

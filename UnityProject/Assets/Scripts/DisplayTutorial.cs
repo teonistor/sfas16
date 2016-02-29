@@ -1,12 +1,9 @@
 ﻿using UnityEngine;
-using System.Collections;
 
 public class DisplayTutorial : MonoBehaviour {
     
-    //[SerializeField] private float TutrorialFadeTime;
     [SerializeField] private GameObject TutorialText;
-
-    //private Vector3 OriginalTextPosition;
+    
     private TextMesh TextField;
     private float CurrentTimeLeft;
     private int CurrentCode;
@@ -15,7 +12,6 @@ public class DisplayTutorial : MonoBehaviour {
     private GameLogic GameLogicInstance;
 
     void Start () {
-        //OriginalTextPosition = TutorialText.transform.position;
         TextField = TutorialText.GetComponent<TextMesh>();
         parent = gameObject.GetComponentInParent<DifficultyCurve>();
         GameLogicInstance = gameObject.GetComponentInParent<GameLogic>();
@@ -23,6 +19,7 @@ public class DisplayTutorial : MonoBehaviour {
 	
 	void Update () {
         
+        //Count down tutorial display time
         if (CurrentCode > 0) {
             CurrentTimeLeft -= Time.deltaTime;
 
@@ -35,13 +32,16 @@ public class DisplayTutorial : MonoBehaviour {
             //If tutorial has finished
             else if (CurrentTimeLeft < 0) {
                 TextField.text = "";
-                //TutorialText.transform.position = OriginalTextPosition;
                 parent.NotifyTutorialDone(CurrentCode);
                 CurrentCode = 0;
             }
         }
 	}
 
+    /* A switch case for each possible piece of tutorial text
+          Each case sets the text to be displayed, the position on screen where it
+          should go and the time it sould stay
+     */
     public void Display(int code) {
         CurrentCode = code;
         switch (code) {
