@@ -1,8 +1,6 @@
 ﻿using System.IO;
 using UnityEngine;
 using System.Collections.Generic;
-//using System.Runtime.Serialization;
-//using System.Runtime.Serialization.Formatters.Binary;
 
 public class SaveLoad : MonoBehaviour {
 

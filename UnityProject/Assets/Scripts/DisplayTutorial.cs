@@ -85,7 +85,7 @@ public class DisplayTutorial : MonoBehaviour {
                 //This is a gap before enemies change column for the first time
                 TextField.text = "";
                 TutorialText.transform.position = new Vector3(0f, 0f, 0f);
-                CurrentTimeLeft = 2.5f;
+                CurrentTimeLeft = 1.5f;
                 break;
             case 9:
                 TextField.text = "Oh, no! The mighty red soldiers\nare attempting to dodge\nyour deadly bullets and invade\nyour fortress!";

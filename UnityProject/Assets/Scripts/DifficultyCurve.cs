@@ -60,7 +60,7 @@ public class DifficultyCurve : MonoBehaviour
             {
                 if (Random.Range(0f, 100f) < EnemyDensity)
                 {
-                    pattern |= 1 << ColumnCount;
+                    pattern |= 1 << ((SpawnMask&1<<ColumnCount)!=0? ColumnCount : ColumnCount+1);
                     mTimeToDanger[ColumnCount] = EnemySafeGap;
                 }
                 else
@@ -126,8 +126,8 @@ public class DifficultyCurve : MonoBehaviour
                 TriggerTutorial(5);
                 break;
             case -7:
-                //This will force enemies on the sides
-                SpawnMask = 5;
+                //This will force enemies on the right
+                SpawnMask = 4;
                 TriggerTutorial(8);
                 break;
             case -10:
