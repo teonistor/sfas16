@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 
 public class PlayerCharacter : MonoBehaviour 
 {
@@ -13,7 +12,7 @@ public class PlayerCharacter : MonoBehaviour
     private float mMovementTime;
     private float mColumnSize;
 	private float mStartY;
-    private int[] Inventory /*{ get; private set; }*/;
+    private int[] Inventory;
 
     //How much movement of the column width can be left when we consider a new movement in the same direction
     private const float ColumnSafety = 0.3f;
@@ -25,21 +24,10 @@ public class PlayerCharacter : MonoBehaviour
     public delegate void TriggerTutorial16(int code);
     public static event TriggerTutorial16 TriggerTutorial;
 
-    /*
-    void Awake() {
-        
-    }*/
-
     void Start() 
 	{
 		mColumnSize = ( GameLogic.ScreenHeight * GameplayCamera.aspect * 0.8f ) / 3;
         mStartY = GameLogic.ScreenHeight * -0.4f;
-
-        //Set the starting position
-        //Vector3 position = transform.position;
-        //position.y = GameLogic.ScreenHeight * -0.4f;
-        //mStartY = position.y; 
-        //transform.position = position;
 
         //Set position, target position; clear inventory
         Reset();
@@ -50,15 +38,12 @@ public class PlayerCharacter : MonoBehaviour
 		// Look for the gun
 		mGun = GetComponentInChildren<Weapon>();
 
-        //Column = 1;
-
         //Allow inventory display script to access Inventory array
         DisplayInventory.GetInventoryDelegate += GetInventory;
     }
 
 	void Update()
 	{
-        //TODO: SmoothDamp? Or do this right?!
         //Nicely move the caracter
 		Vector3 position = transform.position;
 		if( mTargetPosition != position.x )

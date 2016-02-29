@@ -1,13 +1,10 @@
 ﻿using UnityEngine;
-using System.Collections;
 
 /* Star-shaped mesh for powerups
-To be done. 
  */
 public class CreateMesh2 : MonoBehaviour 
 {
 	[SerializeField] private Material Mat;
-	//[SerializeField] private float Size = 1.0f;
 
 	private MeshRenderer mMeshRenderer;
 	private MeshFilter mMesh;
@@ -19,7 +16,8 @@ public class CreateMesh2 : MonoBehaviour
 	
 	private Vector3[] GetVerts() {
 		Vector3 [] verts = new Vector3[16];
-        //Coordinates have been carefully calculated based on the normal map image using some LibreOffice Calc features
+        //Coordinates have been carefully calculated based on the normal map image
+        //Dimensiona are within a 1x1 square
 
         verts[0] = new Vector3(-0.305f, -0.468f, 0f);
         verts[1] = new Vector3(0.011f, -0.204f, 0f);

@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 
 public class DisplayInventory : MonoBehaviour {
 
@@ -15,7 +14,6 @@ public class DisplayInventory : MonoBehaviour {
     private static DisplayInventory mInstance;
     private Vector3[] ButtonPositions;
     private GameObject[] Buttons;
-    //private Vector2 ScreenCorner;
     private bool ScreenHorizontal;
     private float ButtonSizeInPixels;
     private Vector2 ScreenCornerInPixels;
@@ -76,22 +74,32 @@ public class DisplayInventory : MonoBehaviour {
         Buttons = new GameObject[(int)PowerupFactory.Type.NoPowerups];
         for (int i=0; i<(int)PowerupFactory.Type.NoPowerups; i++) {
             Buttons[i] = new GameObject("Button_Pool_ID_"+(i+1));
+
+            //ZGive buttons a shape
             CreateMesh2 Mesh = Buttons[i].AddComponent<CreateMesh2>();
             Mesh.Material = Materials[i];
 
-
+            //Attach a text field to buttons
             GameObject counter = new GameObject("Counter_of_Button_" + (i + 1));
             counter.transform.parent = Buttons[i].transform;
+
+            //Give text a position and size
             counter.transform.localScale = new Vector3(CounterRelativeSize, CounterRelativeSize, CounterRelativeSize);
             counter.transform.position = CounterRelativePosition;
+
+            //Give text some... text.
             TextMesh counterMesh = counter.AddComponent<TextMesh>();
+
+            //Give text a shape
             counterMesh.font = CounterFont;
             MeshRenderer meshRenderer = counter.GetComponent<MeshRenderer>();
             meshRenderer.material = CounterMaterial;
-            //TextMesh Counter = Buttons[i].AddComponent<TextMesh>();
-            //Counter.text = "12";
+
+            //Give buttons a position and scale
             Buttons[i].transform.localScale = new Vector3(ButtonSize, ButtonSize, ButtonSize);
             Buttons[i].transform.position = ButtonPositions[i];
+
+            //Hide buttons for now (when something appears in the inventory, they will be made active)
             Buttons[i].SetActive(false);
         }
 
@@ -102,16 +110,22 @@ public class DisplayInventory : MonoBehaviour {
 
         for (int i = 0; i < (int)PowerupFactory.Type.NoPowerups; i++) {
             if (Inventory[i] > 0) {
+
+                //If item exists in inventory, show a button for it and display the amount
                 Buttons[i].SetActive(true);
                 Buttons[i].GetComponentInChildren<TextMesh>().text = "" + Inventory[i];
             }
             else {
+
+                //If item doesn't exist, hide its button
                 Buttons[i].SetActive(false);
-                //further code to hide count
             }
         }
 	}
 
+    /*This is called when the user taps on the screen, to decide if an inventory button was tapped and
+       a special bullet should be shot.
+    */
     public static int ButtonAt(Vector2 position) {
         if (mInstance == null) return -1;
         else return mInstance.ButtonAtOnInstance(position);

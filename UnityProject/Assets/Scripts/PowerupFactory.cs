@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 
 public class PowerupFactory : MonoBehaviour {
@@ -21,7 +20,6 @@ public class PowerupFactory : MonoBehaviour {
     private List<GameObject> mInactive;
     private Quaternion RotationVector;
     private List<ExplosionItem> ExplosionItems;
-    //private const int MaterialCount = 3;
 
     void Awake () {
         if (mInstance == null)
@@ -137,6 +135,7 @@ public class PowerupFactory : MonoBehaviour {
         }
     }
 
+    //This class allows the factory to manage more easily items from the 'explosion'
     private class ExplosionItem {
         internal Vector3 speed { get; private set;}
         internal GameObject Powerup { get; private set;}
@@ -147,9 +146,9 @@ public class PowerupFactory : MonoBehaviour {
         }
 
         internal bool Update() {
-            Powerup.transform.localRotation *= PowerupFactory.mInstance.RotationVector;
+            Powerup.transform.localRotation *= mInstance.RotationVector;
             Powerup.transform.position += speed * GameLogic.GameDeltaTime;
-            speed = Vector3.Lerp(speed, Vector3.down*PowerupFactory.mInstance.SpeedAmount, GameLogic.GameDeltaTime);
+            speed = Vector3.Lerp(speed, Vector3.down * mInstance.SpeedAmount, GameLogic.GameDeltaTime);
 
             if (Powerup.transform.position.y < GameLogic.ScreenHeight * -0.5f)
                 return true;

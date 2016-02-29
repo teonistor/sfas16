@@ -1,12 +1,10 @@
 ﻿using UnityEngine;
-using System.Collections;
 
 /* Arrow-shaped mesh for player, enemies and background scenery
  */
 public class CreateMesh : MonoBehaviour 
 {
 	[SerializeField] private Material Mat;
-	//[SerializeField] private float Size = 1.0f;
 
 	private MeshRenderer mMeshRenderer;
 	private MeshFilter mMesh;
