@@ -1,2 +1,3 @@
-# SearchForAStar2016
-Simple vertical scrolling game, player can shoot and enemies spawn according to hard coded values. 
+# Arrow!
+
+A sort of game I made for Search For a Star 2016, which I found 5 years later at the bottom of a broken hard disk

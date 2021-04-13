@@ -1,0 +1,48 @@
+﻿
+Enable developer mode
+
+When it shows the famous 399 errors:
+
+In Arrow/obj/ARM/Debug rename App.g.cs to App.g.i.cs
+Open Arrow/Arrow.csproj and remove lines 145-147:
+	<SDKReference Include="WindowsMobile, Version=10.0.10586.0">
+      <Name>Windows Mobile Extensions for the UWP</Name>
+    </SDKReference>
+Reload VS Solution
+Open Arrow/App.xaml.cs and comment out line 105:
+	StatusBar.GetForCurrentView().HideAsync();
+Deploy for x86 (local machine)
+
+
+[Replace "Distance:" with "You have travelled"]
+
+[Tutorial/story/]
+This is you.
+Ahead of you is the neverending road.
+You have been sent from your beloved blue fortress to conquer the road.
+[bg starts moving, first enemy appears]
+Beware of the mighty soldiers from the red fortress!
+When an enemy approaches, tap the screen or press W to shoot him!
+[User does that]
+How far can you get?
+[A few enemies in line, then one on the left. Note that moving sideways is disabled]
+Oh, no! The mighty red soldiers are attempting to dodge your deadly bullets and invade your fortress!
+Swipe sideways or press A or D to move left and right!
+[User does that.]
+You can also use the arrow keys to move and shoot.
+[Main tutorial over.]
+[Comes boss time]
+Here comes the most feared soldier of the red fortress.
+Can you beat him?
+[Boss explodes]
+[Highlight the powerup falling closest to the centre of the screen]
+These are powerups.
+They will boost your abilities.
+Try to catch them!
+
+So far, so good.
+
+[Game over]
+You just set the first high score!
+But don't be too happy yet, for it's also the first low score.
+Don't give up!
